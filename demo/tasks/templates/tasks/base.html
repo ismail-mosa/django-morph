@@ -1,0 +1,84 @@
+{% load morph_tags %}<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}TaskBoard{% endblock %} — Django Morph Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" data-morph-static>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" data-morph-static>
+    {% morph_js %}
+    <style>
+        .navbar-brand i { transition: transform 0.3s; }
+        .navbar-brand:hover i { transform: rotate(20deg); }
+        .task-card { transition: transform 0.15s, box-shadow 0.15s; }
+        .task-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .board-col { min-height: 300px; }
+        .toast-container { z-index: 9999; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'task_list' %}">
+                <i class="bi-clipboard-check"></i> TaskBoard
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="{% url 'task_list' %}"><i class="bi-list-ul"></i> List</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'task_board' %}"><i class="bi-columns-gap"></i> Board</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'task_create' %}"><i class="bi-plus-circle"></i> New Task</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'task_export' %}" data-morph="false"><i class="bi-download"></i> Export CSV</a></li>
+                </ul>
+                <div class="navbar-text text-light" id="morph-counter" data-morph-preserve="true">
+                    <small class="opacity-75">Morphs: <span id="morph-count">0</span></small>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        {% if messages %}
+        {% for message in messages %}
+        <div class="toast show align-items-center text-bg-{{ message.tags }} border-0" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">{{ message }}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+    </div>
+
+    <div class="container mt-4">
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer class="container mt-5 mb-4 text-center text-muted">
+        <small>Built with <strong>django-morph</strong> — all navigation is SPA-style, no full reloads.</small>
+        <br>
+        <small>Try clicking around. The morph counter in the navbar tracks DOM patches.</small>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" data-morph-static></script>
+    <script>
+        window.__demoMorphCount = (window.__demoMorphCount || 0) + 1;
+        var el = document.getElementById("morph-count");
+        if (el) el.textContent = window.__demoMorphCount;
+
+        document.addEventListener("django-morph:updated", function () {
+            window.__demoMorphCount++;
+            var el = document.getElementById("morph-count");
+            if (el) el.textContent = window.__demoMorphCount;
+            document.querySelectorAll(".toast.show").forEach(function (t) {
+                setTimeout(function () {
+                    var inst = bootstrap.Toast.getOrCreateInstance(t);
+                    if (inst) inst.hide();
+                }, 3000);
+            });
+        });
+    </script>
+</body>
+</html>

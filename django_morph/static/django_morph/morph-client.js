@@ -189,6 +189,7 @@
 
         reexecuteScripts().then(function () {
             window.dispatchEvent(new CustomEvent(UPDATED_EVENT));
+            lastPathname = window.location.pathname + window.location.search;
         });
 
         if (url) {
@@ -412,6 +413,23 @@
         clearTimeout(prefetchTimer);
     });
 
+    function scrollToHash(hash) {
+        if (!hash || hash === "#") return false;
+        var id = hash.substring(1);
+        var target = document.getElementById(id);
+        if (target) {
+            target.scrollIntoView({ behavior: "smooth" });
+            return true;
+        }
+        return false;
+    }
+
+    function isSamePage(url1, url2) {
+        return url1.split("#")[0] === url2.split("#")[0];
+    }
+
+    var lastPathname = window.location.pathname + window.location.search;
+
     document.addEventListener("click", function (e) {
         var link = e.target.closest("a[href]");
         if (!link) return;
@@ -420,6 +438,10 @@
         if (shouldSkipElement(link)) return;
 
         if (isHashLink(link)) {
+            e.preventDefault();
+            var hash = link.getAttribute("href");
+            history.pushState({}, "", hash);
+            scrollToHash(hash);
             return;
         }
 
@@ -451,6 +473,14 @@
     });
 
     window.addEventListener("popstate", function () {
+        var currentPathname = window.location.pathname + window.location.search;
+        if (currentPathname === lastPathname) {
+            if (!scrollToHash(window.location.hash)) {
+                window.scrollTo(0, 0);
+            }
+            return;
+        }
+        lastPathname = currentPathname;
         morphFetch(window.location.href, null, true);
     });
 

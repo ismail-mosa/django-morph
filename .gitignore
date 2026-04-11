@@ -17,3 +17,4 @@ venv/
 *.swp
 *.swo
 *~
+.playwright-cli/

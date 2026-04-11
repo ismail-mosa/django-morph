@@ -122,6 +122,18 @@ Prevents a `<script>` from being re-executed after morph. Use this for library s
 <script src="/static/analytics.js" data-morph-static></script>
 ```
 
+### `data-morph-preserve-children`
+
+Prevents **all children** inside the element from being morphed, removed, or added. Useful for third-party widgets (Stripe, Google Maps, reCAPTCHA) that create complex internal DOM structures.
+
+```html
+<div id="stripe-card-element" data-morph-preserve-children>
+    <!-- Stripe.js creates internal iframes here — all preserved -->
+</div>
+```
+
+Unlike `data-morph-preserve`, this does not require the children to have `id` attributes.
+
 ## Events
 
 ### `django-morph:updated`
@@ -162,6 +174,8 @@ document.addEventListener("django-morph:fetch-end", function (e) {
 - **CSRF support** — Automatically includes CSRF token from cookie, `<meta>` tag, or form input
 - **Script re-execution** — Inline scripts re-run after morph; mark libraries with `data-morph-static`
 - **Element preservation** — Keep audio/video/stateful widgets alive during navigation
+- **Auto-preservation** — Canvas, video, audio, iframe, file inputs, dialogs automatically preserved
+- **Child preservation** — `data-morph-preserve-children` protects entire widget subtrees
 - **Scroll restoration** — Scrolls to top on navigation, restores position on browser back/forward
 - **Link prefetch** — Pre-fetches pages on hover for instant navigation
 - **Request cancellation** — Aborts previous request if a new navigation starts
@@ -190,6 +204,61 @@ def item_create(request):
 ## System Checks
 
 Django-morph registers a system check that warns if `MorphMiddleware` is not correctly positioned in your `MIDDLEWARE` setting. Run `python manage.py check` to verify.
+
+## Auto-Preserved Elements
+
+Django-morph automatically preserves certain HTML elements during morph, even without `data-morph-preserve`. These elements have internal state that would be lost if morphed:
+
+| Element | Why it's auto-preserved |
+|---------|------------------------|
+| `<canvas>` | Pixel content is wiped on DOM recreation |
+| `<video>` | Playback state and buffer would be lost |
+| `<audio>` | Playback state and buffer would be lost |
+| `<iframe>` | Entire browsing context reloads on recreation |
+| `<embed>` | Plugin state is lost on recreation |
+| `<object>` | Plugin state is lost on recreation |
+| `<input type="file">` | File selection cannot be re-populated programmatically |
+| `<input type="password">` | Browser autofill may not re-populate after morph |
+| `<dialog open>` | Modal state and backdrop would break |
+| `[contenteditable]` | Cursor position and text selection lost |
+
+These elements still need a unique `id` for idiomorph to match them correctly between old and new DOM.
+
+## Known Issues & Limitations
+
+### Web Components / Shadow DOM
+
+Custom elements with Shadow DOM are opaque to idiomorph. The outer element is morphed normally, but internal shadow content is **not** diffed. Use `data-morph-preserve` or `data-morph-preserve-children` on custom elements.
+
+### Third-Party Widgets
+
+Embedded widgets (Google Maps, Stripe Elements, reCAPTCHA, embedded tweets, etc.) create complex DOM structures with internal state. Always wrap them with `data-morph-preserve-children`:
+
+```html
+<div id="map-container" data-morph-preserve-children>
+    <div id="map"></div>
+</div>
+```
+
+### CSS Animations
+
+Elements mid-animation will restart their animation if morphed, even if attributes didn't change. Use `data-morph-preserve` on animated elements that shouldn't restart.
+
+### `<textarea>` Composition (IME)
+
+Users typing with IME (CJK input methods) may lose composition state if a morph occurs mid-typing. This is a browser limitation — the composition is tied to the specific DOM node.
+
+### `<select multiple>`
+
+Multiple selections may behave inconsistently across browsers after morph. Idiomorph syncs the `selected` attribute on `<option>` elements, but programmatic selections via JavaScript may need re-application in the `django-morph:updated` handler.
+
+### Focus Restoration
+
+Idiomorph's built-in `restoreFocus` only handles `<input>` and `<textarea>`. Focus on `<button>`, `<a>`, or other elements is lost after morph. Use the `django-morph:updated` event to restore focus manually if needed.
+
+### Browser Autofill
+
+Password managers and browser autofill may not re-populate values after morph, since the DOM elements are technically new instances. Use `data-morph-preserve` on forms that rely on autofill.
 
 ## Browser Support
 

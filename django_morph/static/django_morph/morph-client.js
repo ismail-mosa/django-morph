@@ -4,6 +4,7 @@
     var MORPH_HEADER = "X-Django-Morph";
     var REDIRECT_HEADER = "X-Morph-Redirect";
     var PRESERVE_ATTR = "data-morph-preserve";
+    var PRESERVE_CHILDREN_ATTR = "data-morph-preserve-children";
     var SKIP_ATTR = "data-morph";
     var STATIC_ATTR = "data-morph-static";
     var LOADING_CLASS = "morph-loading";
@@ -14,11 +15,14 @@
     var PREFETCH_DELAY = 100;
     var PREFETCH_MAX = 5;
     var PREFETCH_TTL = 30000;
+    var RISKY_TAGS = { CANVAS: 1, VIDEO: 1, AUDIO: 1, IFRAME: 1, EMBED: 1, OBJECT: 1 };
+    var RISKY_INPUT_TYPES = { file: 1, password: 1 };
 
     var currentController = null;
     var scrollPositions = {};
     var prefetchCache = new Map();
     var prefetchTimer = null;
+    var executedStaticScripts = new Set();
 
     function getCookie(name) {
         var value = "; " + document.cookie;
@@ -75,6 +79,36 @@
         return el.hasAttribute(SKIP_ATTR) && el.getAttribute(SKIP_ATTR) === "false";
     }
 
+    function isRiskyElement(node) {
+        if (node.nodeType !== 1) return false;
+        if (node.tagName in RISKY_TAGS) return true;
+        if (node.tagName === "INPUT") {
+            var type = (node.getAttribute("type") || "text").toLowerCase();
+            if (type in RISKY_INPUT_TYPES) return true;
+        }
+        if (node.tagName === "DIALOG" && node.hasAttribute("open")) return true;
+        if (node.getAttribute("contenteditable") === "true") return true;
+        return false;
+    }
+
+    function shouldPreserveNode(node) {
+        if (node.nodeType !== 1) return false;
+        if (node.hasAttribute(PRESERVE_ATTR)) return true;
+        if (isRiskyElement(node)) return true;
+        return false;
+    }
+
+    function isInsidePreserveChildren(node) {
+        var parent = node.parentNode;
+        while (parent && parent !== document.documentElement) {
+            if (parent.nodeType === 1 && parent.hasAttribute(PRESERVE_CHILDREN_ATTR)) {
+                return true;
+            }
+            parent = parent.parentNode;
+        }
+        return false;
+    }
+
     function setLoading(on) {
         if (on) {
             document.documentElement.classList.add(LOADING_CLASS);
@@ -88,7 +122,8 @@
     }
 
     function saveScrollPosition() {
-        scrollPositions[window.location.href] = {
+        var key = window.location.href.split("#")[0];
+        scrollPositions[key] = {
             x: window.scrollX,
             y: window.scrollY
         };
@@ -124,12 +159,18 @@
         Idiomorph.morph(document.documentElement, newDoc.documentElement, {
             callbacks: {
                 beforeNodeMorphed: function (node) {
-                    if (node.nodeType === 1 && node.hasAttribute(PRESERVE_ATTR)) {
-                        return false;
-                    }
+                    if (shouldPreserveNode(node)) return false;
+                    if (isInsidePreserveChildren(node)) return false;
                 },
                 beforeNodeAdded: function (node) {
-                    if (node.nodeType === 1 && node.hasAttribute(PRESERVE_ATTR)) {
+                    if (node.nodeType === 1 && node.tagName === "SCRIPT" && node.hasAttribute(STATIC_ATTR)) {
+                        var src = node.getAttribute("src");
+                        if (src) {
+                            var existing = document.querySelector('script[src="' + src + '"]');
+                            if (existing) return false;
+                        }
+                    }
+                    if (shouldPreserveNode(node)) {
                         var id = node.getAttribute("id");
                         if (id && document.getElementById(id)) {
                             return false;
@@ -137,7 +178,9 @@
                     }
                 },
                 beforeNodeRemoved: function (node) {
-                    if (node.nodeType === 1 && node.hasAttribute(PRESERVE_ATTR)) {
+                    if (shouldPreserveNode(node)) return false;
+                    if (isInsidePreserveChildren(node)) return false;
+                    if (node.nodeType === 1 && node.tagName === "SCRIPT" && node.hasAttribute(STATIC_ATTR)) {
                         return false;
                     }
                 }
@@ -160,8 +203,20 @@
     function reexecuteScripts() {
         var scripts = document.querySelectorAll("script");
         scripts.forEach(function (oldScript) {
-            if (oldScript.hasAttribute(STATIC_ATTR)) return;
             if (oldScript.type && oldScript.type !== "text/javascript") return;
+            if (oldScript.hasAttribute(STATIC_ATTR)) {
+                var src = oldScript.getAttribute("src");
+                if (src && !executedStaticScripts.has(src)) {
+                    executedStaticScripts.add(src);
+                    var newScript = document.createElement("script");
+                    newScript.src = src;
+                    Array.prototype.forEach.call(oldScript.attributes, function (attr) {
+                        if (attr.name !== "src") newScript.setAttribute(attr.name, attr.value);
+                    });
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                }
+                return;
+            }
             var newScript = document.createElement("script");
             if (oldScript.src) {
                 newScript.src = oldScript.src;
@@ -187,7 +242,9 @@
     function morphFetch(url, options, isPopstate) {
         abortCurrentRequest();
 
-        saveScrollPosition();
+        if (!isPopstate) {
+            saveScrollPosition();
+        }
         setLoading(true);
         dispatchFetchEvent(FETCH_START_EVENT, url);
 
@@ -196,7 +253,8 @@
             setLoading(false);
             morphResponse(cached.html, cached.redirectUrl || url, isPopstate);
             if (isPopstate) {
-                var saved = scrollPositions[window.location.href];
+                var targetUrl = window.location.href.split("#")[0];
+                var saved = scrollPositions[targetUrl];
                 if (saved) {
                     window.scrollTo(saved.x, saved.y);
                 } else {
@@ -257,7 +315,8 @@
                 currentController = null;
                 morphResponse(result.html, result.redirectUrl, isPopstate);
                 if (isPopstate) {
-                    var saved = scrollPositions[window.location.href];
+                    var targetUrl = window.location.href.split("#")[0];
+                    var saved = scrollPositions[targetUrl];
                     if (saved) {
                         window.scrollTo(saved.x, saved.y);
                     } else {
@@ -379,5 +438,9 @@
 
     window.addEventListener("popstate", function () {
         morphFetch(window.location.href, null, true);
+    });
+
+    document.querySelectorAll("script[data-morph-static][src]").forEach(function (s) {
+        executedStaticScripts.add(s.getAttribute("src"));
     });
 })();

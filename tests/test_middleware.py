@@ -97,3 +97,43 @@ class MorphMiddlewareTest(TestCase):
         response = middleware(request)
 
         self.assertEqual(response.headers["Vary"], "X-Django-Morph")
+
+    def test_morph_post_redirect_converted(self):
+        def get_response(request):
+            return HttpResponseRedirect("/created/")
+
+        from django_morph.middleware import MorphMiddleware
+
+        middleware = MorphMiddleware(get_response)
+        request = self.factory.post("/", HTTP_X_DJANGO_MORPH="true")
+        response = middleware(request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers.get("X-Morph-Redirect"), "/created/")
+        self.assertNotIn("Location", response.headers)
+
+    def test_non_redirect_morph_response_unchanged(self):
+        def get_response(request):
+            return HttpResponse("hello", status=201)
+
+        from django_morph.middleware import MorphMiddleware
+
+        middleware = MorphMiddleware(get_response)
+        request = self.factory.post("/", HTTP_X_DJANGO_MORPH="true")
+        response = middleware(request)
+
+        self.assertEqual(response.status_code, 201)
+        self.assertNotIn("X-Morph-Redirect", response.headers)
+
+    def test_vary_added_to_404(self):
+        def get_response(request):
+            return HttpResponse("not found", status=404)
+
+        from django_morph.middleware import MorphMiddleware
+
+        middleware = MorphMiddleware(get_response)
+        request = self.factory.get("/", HTTP_X_DJANGO_MORPH="true")
+        response = middleware(request)
+
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("X-Django-Morph", response.headers["Vary"])

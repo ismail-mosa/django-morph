@@ -1,0 +1,38 @@
+{% extends "testapp/base.html" %}
+
+{% block title %}Anchors - Django Morph Test{% endblock %}
+
+{% block content %}
+<h1>Anchors Page</h1>
+<p>Click the section links below. They should <strong>not</strong> trigger a morph fetch — just scroll.</p>
+
+<div class="card">
+    <h3>Jump to:</h3>
+    <a href="#section-alpha" style="margin-right:1rem;">Section Alpha</a>
+    <a href="#section-beta" style="margin-right:1rem;">Section Beta</a>
+    <a href="#section-gamma">Section Gamma</a>
+</div>
+
+<div class="card" id="section-alpha" style="margin-top:3rem;">
+    <h2>Section Alpha</h2>
+    <p>This is section alpha content. Hash link navigation should not trigger a page fetch.</p>
+</div>
+
+<div style="height:800px; background:#f5f5f5; display:flex; align-items:center; justify-content:center; border-radius:8px; margin:1rem 0;">
+    <span style="color:#999;">— Scroll spacer —</span>
+</div>
+
+<div class="card" id="section-beta">
+    <h2>Section Beta</h2>
+    <p>This is section beta content. You got here via a hash link, no morph happened.</p>
+</div>
+
+<div style="height:800px; background:#f5f5f5; display:flex; align-items:center; justify-content:center; border-radius:8px; margin:1rem 0;">
+    <span style="color:#999;">— Scroll spacer —</span>
+</div>
+
+<div class="card" id="section-gamma">
+    <h2>Section Gamma</h2>
+    <p>This is section gamma. The final section for anchor testing.</p>
+</div>
+{% endblock %}

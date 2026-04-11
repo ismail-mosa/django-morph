@@ -11,4 +11,8 @@ urlpatterns = [
     path("error/", views.error_page, name="error"),
     path("items/", views.item_list, name="items"),
     path("items/add/", views.item_create, name="item_create"),
+    path("charts/", views.charts, name="charts"),
+    path("long/", views.long_page, name="long_page"),
+    path("anchors/", views.anchors, name="anchors"),
+    path("widgets/", views.widgets, name="widgets"),
 ]

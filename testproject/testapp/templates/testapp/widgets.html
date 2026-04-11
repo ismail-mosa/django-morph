@@ -1,0 +1,92 @@
+{% extends "testapp/base.html" %}
+
+{% block title %}Widgets - Django Morph Test{% endblock %}
+
+{% block content %}
+<h1>Widgets</h1>
+<p>These elements are auto-preserved during morph. Navigate away and come back.</p>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:1rem 0;">
+    <div class="card">
+        <h3>Canvas (auto-preserved)</h3>
+        <canvas id="test-canvas" width="280" height="180" style="border:1px solid #ccc; border-radius:4px; cursor:crosshair;"></canvas>
+        <p style="font-size:0.85rem; color:#999;">Draw something, then navigate away and back</p>
+    </div>
+
+    <div class="card">
+        <h3>File Input (auto-preserved)</h3>
+        <input type="file" id="test-file">
+        <p style="font-size:0.85rem; color:#999;">Select a file, then navigate away and back</p>
+    </div>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin:1rem 0;">
+    <div class="card">
+        <h3>Dialog (auto-preserved when open)</h3>
+        <button type="button" id="open-dialog-btn">Open Dialog</button>
+        <dialog id="test-dialog">
+            <p>This is a dialog. It should stay open after morph.</p>
+            <button type="button" id="close-dialog-btn">Close</button>
+        </dialog>
+    </div>
+
+    <div class="card">
+        <h3>ContentEditable (auto-preserved)</h3>
+        <div id="test-editable" contenteditable="true" style="border:1px solid #ccc; border-radius:4px; padding:0.5rem; min-height:60px;">
+            Type something here...
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin:1rem 0;">
+    <h3>Preserve Children</h3>
+    <div id="widget-zone" data-morph-preserve-children style="padding:1rem; background:#fef3c7; border-radius:8px;">
+        <p>This entire block uses <code>data-morph-preserve-children</code>.</p>
+        <span id="widget-counter">Counter: 0</span>
+        <button type="button" id="widget-increment-btn" style="margin-left:0.5rem;">Increment</button>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Opt-out Link</h3>
+    <a href="/" data-morph="false">Full Reload Home</a>
+    <p style="font-size:0.85rem; color:#999;">This link has data-morph="false" — triggers hard reload</p>
+</div>
+
+<script>
+    var canvas = document.getElementById("test-canvas");
+    if (canvas && !canvas.__init) {
+        canvas.__init = true;
+        var ctx = canvas.getContext("2d");
+        var drawing = false;
+        canvas.addEventListener("mousedown", function (e) {
+            drawing = true;
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX, e.offsetY);
+        });
+        canvas.addEventListener("mousemove", function (e) {
+            if (!drawing) return;
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.strokeStyle = "#29d";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        });
+        canvas.addEventListener("mouseup", function () { drawing = false; });
+    }
+
+    var openBtn = document.getElementById("open-dialog-btn");
+    var closeBtn = document.getElementById("close-dialog-btn");
+    var dialog = document.getElementById("test-dialog");
+    if (openBtn) openBtn.onclick = function () { dialog.showModal(); };
+    if (closeBtn) closeBtn.onclick = function () { dialog.close(); };
+
+    window.__widgetCount = window.__widgetCount || 0;
+    var incBtn = document.getElementById("widget-increment-btn");
+    if (incBtn) {
+        incBtn.onclick = function () {
+            window.__widgetCount++;
+            document.getElementById("widget-counter").textContent = "Counter: " + window.__widgetCount;
+        };
+    }
+</script>
+{% endblock %}

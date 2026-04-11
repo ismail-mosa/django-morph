@@ -39,6 +39,22 @@ def error_page(request):
     return HttpResponse("Server Error", status=500)
 
 
+def charts(request):
+    return render(request, "testapp/charts.html")
+
+
+def long_page(request):
+    return render(request, "testapp/long_page.html")
+
+
+def anchors(request):
+    return render(request, "testapp/anchors.html")
+
+
+def widgets(request):
+    return render(request, "testapp/widgets.html")
+
+
 def item_list(request):
     items = Item.objects.all()
     show_modal = request.GET.get("add") == "1"

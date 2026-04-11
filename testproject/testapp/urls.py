@@ -15,4 +15,12 @@ urlpatterns = [
     path("long/", views.long_page, name="long_page"),
     path("anchors/", views.anchors, name="anchors"),
     path("widgets/", views.widgets, name="widgets"),
+    path("bootstrap/", views.bootstrap_page, name="bootstrap"),
+    path("tailwind/", views.tailwind_page, name="tailwind"),
+    path("js-test/", views.js_test_page, name="js_test"),
+    path("partial/", views.partial_page, name="partial"),
+    path("feed/", views.feed_page, name="feed"),
+    path("forms/", views.forms_page, name="forms"),
+    path("forms/submit/", views.forms_submit, name="forms_submit"),
+    path("live/", views.live_page, name="live"),
 ]

@@ -1,0 +1,142 @@
+{% load morph_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Widgets - Django Morph</title>
+    <script src="https://cdn.tailwindcss.com" data-morph-static></script>
+    {% morph_js %}
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <nav class="bg-gray-800 border-b border-gray-700">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex gap-4 text-sm">
+            <a href="/" class="text-gray-400 hover:text-white">Home</a>
+            <a href="/bootstrap/" class="text-gray-400 hover:text-white">Bootstrap</a>
+            <a href="/tailwind/" class="text-gray-400 hover:text-white">Tailwind</a>
+            <a href="/js-test/" class="text-gray-400 hover:text-white">JS Test</a>
+            <a href="/partial/" class="text-gray-400 hover:text-white">Partial</a>
+            <a href="/feed/" class="text-gray-400 hover:text-white">Feed</a>
+            <a href="/forms/" class="text-gray-400 hover:text-white">Forms</a>
+            <a href="/live/" class="text-white font-semibold">Live</a>
+        </div>
+    </nav>
+
+    <div class="max-w-5xl mx-auto px-4 py-6">
+        <h1 class="text-3xl font-bold mb-2">Live Widgets</h1>
+        <p class="text-gray-400 mb-6">Tests: live clock (setInterval), animations, contenteditable, Web Components. These should keep running after morph navigation to OTHER pages and restore when coming back.</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                <h3 class="text-lg font-semibold mb-3">Live Clock</h3>
+                <div id="live-clock" class="text-4xl font-mono text-green-400" data-morph-preserve="true">--:--:--</div>
+                <p class="text-gray-500 text-sm mt-2">setInterval runs every second. Preserved across navigations.</p>
+            </div>
+
+            <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                <h3 class="text-lg font-semibold mb-3">Animated Counter</h3>
+                <div class="flex items-center gap-4">
+                    <span class="text-5xl font-bold text-blue-400" id="animated-counter">0</span>
+                    <span class="text-gray-500">auto-incrementing</span>
+                </div>
+                <div class="mt-3 bg-gray-700 rounded-full h-3 overflow-hidden">
+                    <div id="progress-bar" class="bg-blue-500 h-full transition-all duration-300" style="width:0%"></div>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                <h3 class="text-lg font-semibold mb-3">ContentEditable</h3>
+                <div contenteditable="true" class="bg-gray-700 rounded-lg p-4 min-h-[120px] border border-gray-600 focus:border-blue-500 focus:outline-none text-gray-200" data-morph-preserve="true">
+                    Type anything here. This is contenteditable and auto-preserved.
+                </div>
+            </div>
+
+            <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                <h3 class="text-lg font-semibold mb-3">Web Component (Shadow DOM)</h3>
+                <morph-counter id="web-comp" data-morph-preserve="true"></morph-counter>
+                <p class="text-gray-500 text-sm mt-2">Custom element with Shadow DOM — preserved across navigations.</p>
+            </div>
+
+            <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 md:col-span-2">
+                <h3 class="text-lg font-semibold mb-3">CSS Animation</h3>
+                <div class="flex items-center gap-8">
+                    <div class="w-16 h-16 bg-green-500 rounded-full animate-bounce"></div>
+                    <div class="w-16 h-16 bg-blue-500 animate-pulse"></div>
+                    <div class="w-16 h-16 bg-purple-500 animate-spin rounded"></div>
+                    <div class="w-16 h-16 bg-red-500 animate-ping rounded-full"></div>
+                </div>
+                <p class="text-gray-500 text-sm mt-3">Animations restart after morph (elements are recreated). Use data-morph-preserve to keep them running.</p>
+            </div>
+
+            <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 md:col-span-2">
+                <h3 class="text-lg font-semibold mb-3">Console Logger</h3>
+                <div id="log-output" class="bg-black rounded-lg p-4 font-mono text-sm text-green-400 max-h-48 overflow-y-auto" data-morph-preserve="true">
+                    <div>Waiting for events...</div>
+                </div>
+                <div class="mt-3 flex gap-2">
+                    <button onclick="logEvent('Button clicked')" class="px-4 py-2 bg-green-600 rounded hover:bg-green-700">Log Click</button>
+                    <button onclick="logEvent('Action at ' + new Date().toISOString())" class="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700">Log Timestamp</button>
+                    <button onclick="document.getElementById('log-output').innerHTML = '<div>Log cleared</div>'" class="px-4 py-2 bg-gray-600 rounded hover:bg-gray-700">Clear</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var clockEl = document.getElementById("live-clock");
+        var counterEl = document.getElementById("animated-counter");
+        var progressBar = document.getElementById("progress-bar");
+        var counter = 0;
+
+        setInterval(function () {
+            if (clockEl) clockEl.textContent = new Date().toLocaleTimeString();
+        }, 1000);
+
+        setInterval(function () {
+            counter++;
+            if (counterEl) counterEl.textContent = counter;
+            if (progressBar) progressBar.style.width = (counter % 100) + "%";
+        }, 500);
+
+        function logEvent(msg) {
+            var log = document.getElementById("log-output");
+            if (!log) return;
+            var div = document.createElement("div");
+            div.textContent = "[" + new Date().toLocaleTimeString() + "] " + msg;
+            log.appendChild(div);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        window.addEventListener("django-morph:updated", function () {
+            clockEl = document.getElementById("live-clock");
+            counterEl = document.getElementById("animated-counter");
+            progressBar = document.getElementById("progress-bar");
+            logEvent("Morph completed");
+        });
+
+        class MorphCounter extends HTMLElement {
+            constructor() {
+                super();
+                this.shadow = this.attachShadow({ mode: "open" });
+                this.count = 0;
+            }
+            connectedCallback() {
+                this.render();
+                this.timer = setInterval(() => {
+                    this.count++;
+                    this.render();
+                }, 1000);
+            }
+            disconnectedCallback() {
+                clearInterval(this.timer);
+            }
+            render() {
+                this.shadow.innerHTML = '<div style="font-family:system-ui;padding:1rem;text-align:center;"><div style="font-size:2rem;font-weight:bold;color:#60a5fa;">' + this.count + '</div><div style="color:#9ca3af;font-size:0.875rem;">Web Component Counter</div></div>';
+            }
+        }
+        if (!customElements.get("morph-counter")) {
+            customElements.define("morph-counter", MorphCounter);
+        }
+    </script>
+</body>
+</html>

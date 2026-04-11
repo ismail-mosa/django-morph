@@ -1,0 +1,89 @@
+{% load morph_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feed - Django Morph</title>
+    <script src="https://cdn.tailwindcss.com" data-morph-static></script>
+    {% morph_js %}
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-3xl mx-auto px-4 py-3 flex gap-4 text-sm">
+            <a href="/" class="text-gray-600 hover:text-blue-600">Home</a>
+            <a href="/bootstrap/" class="text-gray-600 hover:text-blue-600">Bootstrap</a>
+            <a href="/tailwind/" class="text-gray-600 hover:text-blue-600">Tailwind</a>
+            <a href="/js-test/" class="text-gray-600 hover:text-blue-600">JS Test</a>
+            <a href="/partial/" class="text-gray-600 hover:text-blue-600">Partial</a>
+            <a href="/feed/" class="text-blue-600 font-semibold">Feed</a>
+            <a href="/forms/" class="text-gray-600 hover:text-blue-600">Forms</a>
+            <a href="/live/" class="text-gray-600 hover:text-blue-600">Live</a>
+        </div>
+    </nav>
+
+    <div class="max-w-3xl mx-auto px-4 py-6">
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">Feed (Load More)</h1>
+        <p class="text-gray-500 mb-6">Tests: appending content vs full page replace. "Load More" fetches next batch.</p>
+
+        <div id="feed-list" class="space-y-4">
+            {% for item in feed_items %}
+            <div class="bg-white rounded-xl shadow-sm border p-4">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">{{ item.author.0 }}</div>
+                    <div>
+                        <div class="font-semibold">{{ item.author }}</div>
+                        <div class="text-gray-400 text-sm">{{ item.time }}</div>
+                    </div>
+                </div>
+                <p class="text-gray-700">{{ item.text }}</p>
+                <div class="flex gap-4 mt-3 text-sm text-gray-400">
+                    <button class="hover:text-red-500" onclick="this.textContent='❤️ Liked'">🤍 Like</button>
+                    <button class="hover:text-blue-500" onclick="this.textContent='💬 Replied'">💬 Reply</button>
+                    <button class="hover:text-green-500" onclick="this.textContent='🔗 Copied!'">🔗 Share</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="mt-6 text-center">
+            <button id="load-more-btn" class="px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition">
+                Load More (Page {{ page }})
+            </button>
+            <p class="text-gray-400 text-sm mt-2" id="feed-status">Showing {{ feed_items|length }} items</p>
+        </div>
+    </div>
+
+    <script>
+        var nextPage = {{ next_page }};
+        document.getElementById("load-more-btn").addEventListener("click", function () {
+            var btn = this;
+            btn.textContent = "Loading...";
+            btn.disabled = true;
+
+            fetch("/feed/?page=" + nextPage, {
+                headers: { "X-Django-Morph": "true" },
+                credentials: "same-origin"
+            })
+            .then(function (r) { return r.text(); })
+            .then(function (html) {
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(html, "text/html");
+                var newItems = doc.querySelectorAll("#feed-list > div");
+                var list = document.getElementById("feed-list");
+                newItems.forEach(function (item) {
+                    list.appendChild(document.importNode(item, true));
+                });
+                nextPage++;
+                btn.textContent = "Load More (Page " + nextPage + ")";
+                btn.disabled = false;
+                document.getElementById("feed-status").textContent = "Showing " + list.children.length + " items";
+            })
+            .catch(function () {
+                btn.textContent = "Error - Retry";
+                btn.disabled = false;
+            });
+        });
+    </script>
+</body>
+</html>

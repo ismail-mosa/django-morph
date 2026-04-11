@@ -1,0 +1,138 @@
+{% load morph_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS Libraries Test - Django Morph</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" data-morph-static>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastr/build/toastr.min.css" data-morph-static>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 1100px; margin: 0 auto; padding: 1rem; color: #333; }
+        nav { margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #eee; display: flex; gap: 0.75rem; flex-wrap: wrap; }
+        nav a { text-decoration: none; color: #29d; font-weight: 600; font-size: 0.9rem; }
+        nav a:hover { text-decoration: underline; }
+        .section { background: #f9f9f9; padding: 1.5rem; border-radius: 8px; margin: 1rem 0; border: 1px solid #eee; }
+        .section h3 { margin-top: 0; }
+        .sortable-item { padding: 0.75rem 1rem; background: white; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 0.5rem; cursor: grab; display: flex; justify-content: space-between; align-items: center; }
+        .sortable-item:active { cursor: grabbing; }
+        .sortable-ghost { opacity: 0.4; background: #cfe; }
+        button { padding: 0.5rem 1rem; background: #29d; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #1ab; }
+    </style>
+    {% morph_js %}
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/bootstrap/">Bootstrap</a>
+        <a href="/tailwind/">Tailwind</a>
+        <a href="/js-test/">JS Test</a>
+        <a href="/partial/">Partial</a>
+        <a href="/feed/">Feed</a>
+        <a href="/forms/">Forms</a>
+        <a href="/live/">Live</a>
+        <a href="/items/">Items</a>
+        <a href="/charts/">Charts</a>
+    </nav>
+
+    <h1>JS Libraries Stress Test</h1>
+    <p>Tests multiple JS libraries to see how they handle morph navigation.</p>
+
+    <div class="section">
+        <h3>1. Alpine.js (Reactive Binding)</h3>
+        <div x-data="{ open: false, items: ['Alpha', 'Beta', 'Gamma'] }">
+            <button @click="open = !open" x-text="open ? 'Hide Panel' : 'Show Panel'"></button>
+            <div x-show="open" x-transition class="mt-3 p-3 bg-white rounded border">
+                <p x-text="'Panel open with ' + items.length + ' items'"></p>
+                <ul>
+                    <template x-for="item in items">
+                        <li x-text="item"></li>
+                    </template>
+                </ul>
+                <button @click="items.push('New ' + items.length)" class="mt-2">Add Item</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>2. SortableJS (Drag & Drop)</h3>
+        <p>Drag items to reorder. Navigate away and back — order resets (DOM is rebuilt).</p>
+        <div id="sortable-list">
+            <div class="sortable-item"><span>Task A - Design mockups</span> <span style="color:#999;">☰ drag</span></div>
+            <div class="sortable-item"><span>Task B - Write tests</span> <span style="color:#999;">☰ drag</span></div>
+            <div class="sortable-item"><span>Task C - Deploy to prod</span> <span style="color:#999;">☰ drag</span></div>
+            <div class="sortable-item"><span>Task D - Code review</span> <span style="color:#999;">☰ drag</span></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>3. Flatpickr (Date Picker)</h3>
+        <p>Open the date picker, select a date, then navigate away and back.</p>
+        <div>
+            <label>Date: <input type="text" id="flatpickr-date" placeholder="Pick a date..."></label>
+            <label>Time: <input type="text" id="flatpickr-time" placeholder="Pick a time..."></label>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>4. Chart.js (Canvas Charts)</h3>
+        <p>Charts use &lt;canvas&gt; (auto-preserved). Navigate away and back — charts should re-render.</p>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div><canvas id="chartjs-bar" height="200"></canvas></div>
+            <div><canvas id="chartjs-doughnut" height="200"></canvas></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>5. Toastr (Toast Notifications)</h3>
+        <p>Click buttons to trigger toasts. Navigate away and back, then trigger again.</p>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <button onclick="toastr.success('Operation completed!')" style="background:#16a34a;">Success</button>
+            <button onclick="toastr.error('Something went wrong')" style="background:#dc2626;">Error</button>
+            <button onclick="toastr.warning('Be careful!')" style="background:#d97706;">Warning</button>
+            <button onclick="toastr.info('Here is some info')" style="background:#2563eb;">Info</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer data-morph-static></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js" data-morph-static></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr" data-morph-static></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" data-morph-static></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js" data-morph-static></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastr/build/toastr.min.js" data-morph-static></script>
+    <script>
+        new Sortable(document.getElementById("sortable-list"), {
+            animation: 150,
+            ghostClass: "sortable-ghost"
+        });
+
+        flatpickr("#flatpickr-date", { dateFormat: "Y-m-d" });
+        flatpickr("#flatpickr-time", { enableTime: true, noCalendar: true, dateFormat: "H:i" });
+
+        var barCtx = document.getElementById("chartjs-bar");
+        if (barCtx) {
+            new Chart(barCtx, {
+                type: "bar",
+                data: {
+                    labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
+                    datasets: [{ label: "Votes", data: [12, 19, 3, 5, 2, 3], backgroundColor: ["#dc2626","#29d","#d97706","#16a34a","#7c3aed","#ea580c"] }]
+                },
+                options: { responsive: true }
+            });
+        }
+
+        var doughnutCtx = document.getElementById("chartjs-doughnut");
+        if (doughnutCtx) {
+            new Chart(doughnutCtx, {
+                type: "doughnut",
+                data: {
+                    labels: ["Direct", "Social", "Referral"],
+                    datasets: [{ data: [55, 30, 15], backgroundColor: ["#29d","#16a34a","#d97706"] }]
+                },
+                options: { responsive: true }
+            });
+        }
+    </script>
+</body>
+</html>

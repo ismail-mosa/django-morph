@@ -187,9 +187,9 @@
             }
         });
 
-        reexecuteScripts();
-
-        window.dispatchEvent(new CustomEvent(UPDATED_EVENT));
+        reexecuteScripts().then(function () {
+            window.dispatchEvent(new CustomEvent(UPDATED_EVENT));
+        });
 
         if (url) {
             if (isPopstate) {
@@ -202,6 +202,9 @@
 
     function reexecuteScripts() {
         var scripts = document.querySelectorAll("script");
+        var staticPromises = [];
+        var inlineScripts = [];
+
         scripts.forEach(function (oldScript) {
             if (oldScript.type && oldScript.type !== "text/javascript") return;
             if (oldScript.hasAttribute(STATIC_ATTR)) {
@@ -213,22 +216,33 @@
                     Array.prototype.forEach.call(oldScript.attributes, function (attr) {
                         if (attr.name !== "src") newScript.setAttribute(attr.name, attr.value);
                     });
+                    staticPromises.push(new Promise(function (resolve) {
+                        newScript.onload = resolve;
+                        newScript.onerror = resolve;
+                    }));
                     oldScript.parentNode.replaceChild(newScript, oldScript);
                 }
                 return;
             }
-            var newScript = document.createElement("script");
-            if (oldScript.src) {
-                newScript.src = oldScript.src;
-            } else {
-                newScript.textContent = oldScript.textContent;
-            }
-            Array.prototype.forEach.call(oldScript.attributes, function (attr) {
-                if (attr.name !== "src") {
-                    newScript.setAttribute(attr.name, attr.value);
+            inlineScripts.push(oldScript);
+        });
+
+        return Promise.all(staticPromises).then(function () {
+            inlineScripts.forEach(function (oldScript) {
+                if (!oldScript.parentNode) return;
+                var newScript = document.createElement("script");
+                if (oldScript.src) {
+                    newScript.src = oldScript.src;
+                } else {
+                    newScript.textContent = oldScript.textContent;
                 }
+                Array.prototype.forEach.call(oldScript.attributes, function (attr) {
+                    if (attr.name !== "src") {
+                        newScript.setAttribute(attr.name, attr.value);
+                    }
+                });
+                oldScript.parentNode.replaceChild(newScript, oldScript);
             });
-            oldScript.parentNode.replaceChild(newScript, oldScript);
         });
     }
 

@@ -1,0 +1,108 @@
+{% load morph_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tailwind Store - Django Morph</title>
+    <script src="https://cdn.tailwindcss.com" data-morph-static></script>
+    {% morph_js %}
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-6">
+                <a href="/" class="text-xl font-bold text-gray-800">MorphStore</a>
+                <div class="flex gap-4 text-sm">
+                    <a href="/bootstrap/" class="text-gray-600 hover:text-blue-600">Bootstrap</a>
+                    <a href="/tailwind/" class="text-blue-600 font-semibold">Tailwind</a>
+                    <a href="/js-test/" class="text-gray-600 hover:text-blue-600">JS Test</a>
+                    <a href="/partial/" class="text-gray-600 hover:text-blue-600">Partial</a>
+                    <a href="/feed/" class="text-gray-600 hover:text-blue-600">Feed</a>
+                    <a href="/forms/" class="text-gray-600 hover:text-blue-600">Forms</a>
+                    <a href="/live/" class="text-gray-600 hover:text-blue-600">Live</a>
+                    <a href="/items/" class="text-gray-600 hover:text-blue-600">Items</a>
+                    <a href="/charts/" class="text-gray-600 hover:text-blue-600">Charts</a>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div x-data="{ cart: 0 }" class="relative">
+                    <button @click="cart++" class="text-gray-600 hover:text-blue-600">
+                        Cart (<span x-text="cart"></span>)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 py-6">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Tailwind Store</h1>
+        <p class="text-gray-500 mb-6">Tests: Tailwind CDN, Alpine.js reactivity, hover effects, transitions, cart state.</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer" onclick="this.querySelector('.badge').textContent = 'Added!'; this.querySelector('.badge').className = 'absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded badge'">
+                <div class="relative">
+                    <div class="bg-gradient-to-br from-blue-400 to-blue-600 h-48 flex items-center justify-center text-white text-5xl">T</div>
+                    <span class="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded badge">New</span>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-semibold text-lg">Tailwind Tee</h3>
+                    <p class="text-gray-500 text-sm">Comfortable cotton t-shirt</p>
+                    <p class="text-blue-600 font-bold mt-2">$29.99</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer" onclick="this.querySelector('.badge').textContent = 'Added!'; this.querySelector('.badge').className = 'absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded badge'">
+                <div class="relative">
+                    <div class="bg-gradient-to-br from-purple-400 to-purple-600 h-48 flex items-center justify-center text-white text-5xl">H</div>
+                    <span class="absolute top-2 right-2 bg-purple-500 text-white text-xs px-2 py-1 rounded badge">Hot</span>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-semibold text-lg">Morph Hoodie</h3>
+                    <p class="text-gray-500 text-sm">Warm fleece hoodie</p>
+                    <p class="text-purple-600 font-bold mt-2">$59.99</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm border overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer" onclick="this.querySelector('.badge').textContent = 'Added!'; this.querySelector('.badge').className = 'absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded badge'">
+                <div class="relative">
+                    <div class="bg-gradient-to-br from-green-400 to-green-600 h-48 flex items-center justify-center text-white text-5xl">C</div>
+                    <span class="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded badge">Sale</span>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-semibold text-lg">Django Cap</h3>
+                    <p class="text-gray-500 text-sm">Adjustable snapback</p>
+                    <p class="text-green-600 font-bold mt-2">$19.99</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border p-6 mb-8" x-data="{ filter: 'all', products: ['Widget A', 'Widget B', 'Widget C', 'Gadget X', 'Gadget Y'] }">
+            <h2 class="text-xl font-bold mb-4">Alpine.js Filter</h2>
+            <div class="flex gap-2 mb-4">
+                <button @click="filter = 'all'" :class="filter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-200'" class="px-4 py-2 rounded-lg text-sm font-medium">All</button>
+                <button @click="filter = 'widget'" :class="filter === 'widget' ? 'bg-blue-600 text-white' : 'bg-gray-200'" class="px-4 py-2 rounded-lg text-sm font-medium">Widgets</button>
+                <button @click="filter = 'gadget'" :class="filter === 'gadget' ? 'bg-blue-600 text-white' : 'bg-gray-200'" class="px-4 py-2 rounded-lg text-sm font-medium">Gadgets</button>
+            </div>
+            <ul class="space-y-2">
+                <template x-for="p in products.filter(x => filter === 'all' || x.toLowerCase().startsWith(filter))" :key="p">
+                    <li class="p-3 bg-gray-50 rounded-lg flex justify-between items-center" x-text="p">
+                    </li>
+                </template>
+            </ul>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border p-6">
+            <h2 class="text-xl font-bold mb-4">Animated Counter</h2>
+            <div x-data="{ count: 0 }" class="flex items-center gap-4">
+                <button @click="count--" class="w-10 h-10 rounded-full bg-red-500 text-white text-xl font-bold hover:bg-red-600 transition">-</button>
+                <span x-text="count" class="text-3xl font-bold w-16 text-center" :class="count > 0 ? 'text-green-600' : count < 0 ? 'text-red-600' : 'text-gray-400'"></span>
+                <button @click="count++" class="w-10 h-10 rounded-full bg-green-500 text-white text-xl font-bold hover:bg-green-600 transition">+</button>
+            </div>
+            <p class="text-gray-400 text-sm mt-2">Navigate away and back — Alpine state resets (JS re-executes)</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer data-morph-static></script>
+</body>
+</html>

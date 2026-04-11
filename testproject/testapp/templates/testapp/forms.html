@@ -1,0 +1,174 @@
+{% load morph_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forms - Django Morph</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" data-morph-static>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" data-morph-static>
+    {% morph_js %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">Morph Test</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/bootstrap/">Bootstrap</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/tailwind/">Tailwind</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/js-test/">JS Test</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/partial/">Partial</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/feed/">Feed</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/forms/">Forms</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/live/">Live</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4" style="max-width:700px;">
+        <h2>Form Heavy Page</h2>
+        <p class="text-muted">Tests: multi-step form, dependent dropdowns, repeatable sections, file upload, Flatpickr.</p>
+
+        <div id="form-wizard">
+            <ul class="nav nav-pills mb-3" id="step-tabs">
+                <li class="nav-item"><a class="nav-link active" href="#" onclick="showStep(1); return false;">Step 1: Personal</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" onclick="showStep(2); return false;">Step 2: Details</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" onclick="showStep(3); return false;">Step 3: Confirm</a></li>
+            </ul>
+
+            <div id="step-1" class="card p-4">
+                <h4>Personal Information</h4>
+                <form id="wizard-form" method="post" action="/forms/submit/">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" class="form-control" name="name" required placeholder="John Doe">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" name="email" required placeholder="john@example.com">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Date of Birth</label>
+                        <input type="text" class="form-control" id="dob-picker" name="dob" placeholder="Pick a date...">
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="showStep(2)">Next →</button>
+                </form>
+            </div>
+
+            <div id="step-2" class="card p-4" style="display:none;">
+                <h4>Details</h4>
+                <div class="mb-3">
+                    <label class="form-label">Country</label>
+                    <select class="form-select" id="country-select" name="country">
+                        <option value="">Select country...</option>
+                        <option value="us">United States</option>
+                        <option value="uk">United Kingdom</option>
+                        <option value="de">Germany</option>
+                        <option value="fr">France</option>
+                        <option value="ma">Morocco</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">City</label>
+                    <select class="form-select" id="city-select" name="city" disabled>
+                        <option value="">Select country first...</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Phone Numbers</label>
+                    <div id="phone-list">
+                        <div class="input-group mb-2 phone-row">
+                            <input type="tel" class="form-control" name="phones" placeholder="+1 234 567 890">
+                            <button type="button" class="btn btn-outline-danger" onclick="this.closest('.phone-row').remove()">×</button>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="addPhone()">+ Add Phone</button>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Documents (file input - auto-preserved)</label>
+                    <input type="file" class="form-control" name="documents" multiple id="doc-upload">
+                    <div class="form-text">Select files, then navigate away and back — selection should persist.</div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-secondary" onclick="showStep(1)">← Back</button>
+                    <button type="button" class="btn btn-primary" onclick="showStep(3)">Next →</button>
+                </div>
+            </div>
+
+            <div id="step-3" class="card p-4" style="display:none;">
+                <h4>Confirm & Submit</h4>
+                <div id="summary" class="mb-3">
+                    <p class="text-muted">Review your data above, then submit.</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Additional Notes</label>
+                    <textarea class="form-control" name="notes" rows="3" placeholder="Anything else?"></textarea>
+                </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" required id="agree-check">
+                    <label class="form-check-label" for="agree-check">I agree to the terms</label>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-secondary" onclick="showStep(2)">← Back</button>
+                    <button type="submit" class="btn btn-success" onclick="document.getElementById('wizard-form').submit()">Submit Form</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" data-morph-static></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr" data-morph-static></script>
+    <script>
+        function showStep(n) {
+            document.getElementById("step-1").style.display = n === 1 ? "block" : "none";
+            document.getElementById("step-2").style.display = n === 2 ? "block" : "none";
+            document.getElementById("step-3").style.display = n === 3 ? "block" : "none";
+            var tabs = document.querySelectorAll("#step-tabs .nav-link");
+            tabs.forEach(function (t, i) { t.classList.toggle("active", i === n - 1); });
+        }
+
+        var cities = {
+            us: ["New York", "Los Angeles", "Chicago", "Houston"],
+            uk: ["London", "Manchester", "Birmingham", "Edinburgh"],
+            de: ["Berlin", "Munich", "Hamburg", "Frankfurt"],
+            fr: ["Paris", "Lyon", "Marseille", "Toulouse"],
+            ma: ["Casablanca", "Rabat", "Marrakech", "Fes"]
+        };
+
+        document.getElementById("country-select").addEventListener("change", function () {
+            var citySelect = document.getElementById("city-select");
+            citySelect.innerHTML = "";
+            var opts = cities[this.value] || [];
+            if (opts.length === 0) {
+                citySelect.innerHTML = '<option value="">Select country first...</option>';
+                citySelect.disabled = true;
+            } else {
+                citySelect.disabled = false;
+                citySelect.innerHTML = '<option value="">Select city...</option>';
+                opts.forEach(function (c) {
+                    var o = document.createElement("option");
+                    o.value = c.toLowerCase().replace(/\s/g, "-");
+                    o.textContent = c;
+                    citySelect.appendChild(o);
+                });
+            }
+        });
+
+        function addPhone() {
+            var row = document.createElement("div");
+            row.className = "input-group mb-2 phone-row";
+            row.innerHTML = '<input type="tel" class="form-control" name="phones" placeholder="+1 234 567 890"><button type="button" class="btn btn-outline-danger" onclick="this.closest(\'.phone-row\').remove()">×</button>';
+            document.getElementById("phone-list").appendChild(row);
+        }
+
+        flatpickr("#dob-picker", { dateFormat: "Y-m-d", maxDate: "today" });
+    </script>
+</body>
+</html>

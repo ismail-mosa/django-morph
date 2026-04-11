@@ -1,0 +1,176 @@
+{% load morph_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bootstrap Dashboard - Django Morph</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" data-morph-static>
+    {% morph_js %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">Morph Test</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/bootstrap/">Bootstrap</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/tailwind/">Tailwind</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/js-test/">JS Test</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/partial/">Partial</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/feed/">Feed</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/forms/">Forms</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/live/">Live</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/items/">Items</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/charts/">Charts</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-3">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2>Bootstrap 5 Dashboard</h2>
+                <p class="text-muted">Tests: navbar collapse, tabs, modals, toasts, cards — all Bootstrap JS components.</p>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-bg-primary">
+                    <div class="card-body">
+                        <h5 class="card-title">Users</h5>
+                        <p class="card-text display-6">1,247</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-bg-success">
+                    <div class="card-body">
+                        <h5 class="card-title">Revenue</h5>
+                        <p class="card-text display-6">$34,521</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-bg-warning">
+                    <div class="card-body">
+                        <h5 class="card-title">Orders</h5>
+                        <p class="card-text display-6">456</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-bg-danger">
+                    <div class="card-body">
+                        <h5 class="card-title">Bounce Rate</h5>
+                        <p class="card-text display-6">23%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#overview" type="button">Overview</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#analytics" type="button">Analytics</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#settings" type="button">Settings</button>
+                    </li>
+                </ul>
+                <div class="tab-content p-3 border border-top-0">
+                    <div class="tab-pane fade show active" id="overview">
+                        <h4>Overview Tab</h4>
+                        <p>This is the overview content. Switch tabs and then navigate away and back — tabs should reset to first tab (Bootstrap JS re-inits).</p>
+                        <table class="table table-striped">
+                            <thead><tr><th>#</th><th>Name</th><th>Status</th></tr></thead>
+                            <tbody>
+                                <tr><td>1</td><td>Alice</td><td><span class="badge bg-success">Active</span></td></tr>
+                                <tr><td>2</td><td>Bob</td><td><span class="badge bg-warning">Pending</span></td></tr>
+                                <tr><td>3</td><td>Carol</td><td><span class="badge bg-danger">Inactive</span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="tab-pane fade" id="analytics">
+                        <h4>Analytics Tab</h4>
+                        <p>Analytics content here. This tab uses Bootstrap's fade transition.</p>
+                        <div class="progress mb-2"><div class="progress-bar" style="width: 75%">75%</div></div>
+                        <div class="progress mb-2"><div class="progress-bar bg-success" style="width: 50%">50%</div></div>
+                        <div class="progress"><div class="progress-bar bg-danger" style="width: 25%">25%</div></div>
+                    </div>
+                    <div class="tab-pane fade" id="settings">
+                        <h4>Settings Tab</h4>
+                        <form>
+                            <div class="mb-3">
+                                <label class="form-label">Site Name</label>
+                                <input type="text" class="form-control" value="My Dashboard">
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" checked>
+                                <label class="form-check-label">Enable notifications</label>
+                            </div>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirmModal">Save Changes</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <button type="button" class="btn btn-success" id="show-toast-btn">Show Toast</button>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirmModal">Open Modal</button>
+                <button type="button" class="btn btn-secondary" id="alert-btn">Native Alert</button>
+            </div>
+        </div>
+
+        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+            <div id="liveToast" class="toast" role="alert">
+                <div class="toast-header">
+                    <strong class="me-auto">Bootstrap Toast</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+                </div>
+                <div class="toast-body">This toast was triggered after morph navigation!</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="confirmModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Action</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">Are you sure you want to save these changes? This is a Bootstrap modal.</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" data-morph-static></script>
+    <script>
+        document.getElementById("show-toast-btn").addEventListener("click", function () {
+            var toastEl = document.getElementById("liveToast");
+            var toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+            toast.show();
+        });
+        document.getElementById("alert-btn").addEventListener("click", function () {
+            document.getElementById("alert-btn").textContent = "Clicked at " + new Date().toLocaleTimeString();
+        });
+    </script>
+</body>
+</html>

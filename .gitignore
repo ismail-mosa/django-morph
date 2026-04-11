@@ -18,3 +18,5 @@ venv/
 *.swo
 *~
 .playwright-cli/
+test-results/
+package-lock.json

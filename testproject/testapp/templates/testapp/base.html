@@ -1,0 +1,101 @@
+{% load morph_tags %}<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Django Morph Test{% endblock %}</title>
+    <style>
+        body { font-family: system-ui, sans-serif; max-width: 700px; margin: 2rem auto; padding: 0 1rem; color: #333; }
+        nav { margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid #eee; }
+        nav a { margin-right: 1rem; text-decoration: none; color: #29d; font-weight: 600; }
+        nav a:hover { text-decoration: underline; }
+        h1 { color: #222; }
+        .card { background: #f9f9f9; padding: 1.5rem; border-radius: 8px; margin: 1rem 0; }
+        .audio-player { padding: 1rem; background: #eef; border-radius: 8px; margin: 1rem 0; }
+        #audio-player audio { width: 100%; }
+        .js-panel { background: #fef3c7; padding: 1.5rem; border-radius: 8px; margin: 1rem 0; border: 2px dashed #d97706; }
+        .js-panel h3 { margin-top: 0; color: #92400e; }
+        .js-panel .stat { display: inline-block; background: white; padding: 0.25rem 0.75rem; border-radius: 4px; margin: 0.25rem; font-family: monospace; }
+        label { display: block; margin-top: 0.75rem; font-weight: 600; }
+        input[type="text"], input[type="email"], textarea { width: 100%; padding: 0.5rem; margin-top: 0.25rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { margin-top: 1rem; padding: 0.5rem 1.5rem; background: #29d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; }
+        button:hover { background: #1ab; }
+        .morph-status { position: fixed; bottom: 1rem; right: 1rem; background: #222; color: #0f0; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; }
+        .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .modal { background: white; padding: 2rem; border-radius: 10px; width: 90%; max-width: 480px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); position: relative; }
+        .modal h2 { margin-top: 0; }
+        .modal-close { position: absolute; top: 0.75rem; right: 1rem; font-size: 1.5rem; text-decoration: none; color: #999; line-height: 1; }
+        .modal-close:hover { color: #333; }
+        .messages { position: fixed; top: 1rem; right: 1rem; z-index: 2000; display: flex; flex-direction: column; gap: 0.5rem; }
+        .messages li { list-style: none; padding: 0.75rem 1.25rem; border-radius: 6px; color: white; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: msg-in 0.3s ease; }
+        .messages .success { background: #16a34a; }
+        .messages .error { background: #dc2626; }
+        .messages .warning { background: #d97706; }
+        .messages .info { background: #2563eb; }
+        @keyframes msg-in { from { opacity: 0; transform: translateX(2rem); } to { opacity: 1; transform: translateX(0); } }
+    </style>
+    {% morph_js %}
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/about/">About</a>
+        <a href="/contact/">Contact</a>
+        <a href="/items/">Items</a>
+        <a href="/error/">Error (500)</a>
+    </nav>
+
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li class="{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+
+    <div id="audio-player" class="audio-player" {% morph_permanent %}>
+        <p><strong>Persistent Audio Player</strong> (preserves across navigations)</p>
+        <audio controls>
+            <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+            Your browser does not support audio.
+        </audio>
+    </div>
+
+    <div id="js-test-panel" class="js-panel">
+        <h3>JS Test Panel</h3>
+        <p>Script executed: <span class="stat" id="script-time">—</span> times</p>
+        <p>Current time: <span class="stat" id="morph-time">—</span></p>
+        <p>
+            <button id="test-js-btn" type="button" style="background:#92400e;">Click to test JS</button>
+            <span id="click-count" style="margin-left:0.5rem; font-weight:600;">Clicks: 0</span>
+        </p>
+        <p id="morph-event-status" style="font-size:0.85rem; color:#92400e;">Morph event: waiting...</p>
+    </div>
+
+    <div id="morph-status" class="morph-status">Ready</div>
+
+    <script>
+        window.__morphCount = (window.__morphCount || 0) + 1;
+        document.getElementById("script-time").textContent = window.__morphCount;
+        document.getElementById("morph-time").textContent = new Date().toLocaleTimeString();
+
+        window.__clickCount = window.__clickCount || 0;
+        var btn = document.getElementById("test-js-btn");
+        btn.onclick = function () {
+            window.__clickCount++;
+            document.getElementById("click-count").textContent = "Clicks: " + window.__clickCount;
+            btn.style.background = btn.style.background === "green" ? "#92400e" : "green";
+        };
+
+        var el = document.getElementById("morph-status");
+        if (el) el.textContent = "Morphed at " + new Date().toLocaleTimeString();
+
+        window.addEventListener("django-morph:updated", function () {
+            var status = document.getElementById("morph-event-status");
+            if (status) status.textContent = "Morph event fired at " + new Date().toLocaleTimeString();
+        });
+    </script>
+</body>
+</html>

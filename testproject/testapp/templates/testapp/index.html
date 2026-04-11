@@ -1,0 +1,20 @@
+{% extends "testapp/base.html" %}
+
+{% block title %}Home - Django Morph Test{% endblock %}
+
+{% block content %}
+<h1>Home</h1>
+<p>Welcome to the <strong>django-morph</strong> test app.</p>
+<p>Click the navigation links above. The page content will change <em>without a full reload</em>.</p>
+
+<div class="card">
+    <h3>What to test:</h3>
+    <ul>
+        <li><strong>Navigation</strong> — Click any nav link. The browser tab should NOT spin.</li>
+        <li><strong>Redirect</strong> — Submit the contact form. It redirects via <code>redirect()</code> and the URL bar updates.</li>
+        <li><strong>Persistent element</strong> — The audio player below keeps playing during navigation.</li>
+        <li><strong>Error handling</strong> — Click "Error (500)" to trigger a hard reload fallback.</li>
+        <li><strong>Browser back/forward</strong> — Use browser buttons to navigate history.</li>
+    </ul>
+</div>
+{% endblock %}

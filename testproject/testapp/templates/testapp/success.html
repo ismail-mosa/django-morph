@@ -1,0 +1,13 @@
+{% extends "testapp/base.html" %}
+
+{% block title %}Success - Django Morph Test{% endblock %}
+
+{% block content %}
+<h1>Success!</h1>
+<p>Thank you, <strong>{{ name }}</strong>! Your message was received.</p>
+<p>This page was reached via a Django <code>redirect()</code> — the URL bar should show <code>/success/?name={{ name }}</code>.</p>
+
+<div class="card">
+    <a href="/">Go back home</a>
+</div>
+{% endblock %}

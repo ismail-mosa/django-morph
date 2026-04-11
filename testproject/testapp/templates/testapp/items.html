@@ -1,0 +1,56 @@
+{% extends "testapp/base.html" %}
+
+{% block title %}Items - Django Morph Test{% endblock %}
+
+{% block content %}
+<h1>Items</h1>
+
+<div style="margin-bottom: 1rem;">
+    <a href="/items/?add=1" style="display:inline-block; padding:0.5rem 1.5rem; background:#29d; color:white; text-decoration:none; border-radius:4px; font-weight:600;">+ Add New Item</a>
+</div>
+
+<table style="width:100%; border-collapse:collapse;">
+    <thead>
+        <tr style="background:#f0f0f0; text-align:left;">
+            <th style="padding:0.75rem; border-bottom:2px solid #ddd;">#</th>
+            <th style="padding:0.75rem; border-bottom:2px solid #ddd;">Title</th>
+            <th style="padding:0.75rem; border-bottom:2px solid #ddd;">Description</th>
+            <th style="padding:0.75rem; border-bottom:2px solid #ddd;">Created</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td style="padding:0.75rem; border-bottom:1px solid #eee;">{{ forloop.counter }}</td>
+            <td style="padding:0.75rem; border-bottom:1px solid #eee;">{{ item.title }}</td>
+            <td style="padding:0.75rem; border-bottom:1px solid #eee;">{{ item.description|default:"—" }}</td>
+            <td style="padding:0.75rem; border-bottom:1px solid #eee;">{{ item.created_at|date:"M d, H:i" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4" style="padding:2rem; text-align:center; color:#999;">No items yet. Click "Add New Item" to create one.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if show_modal %}
+<div class="modal-backdrop">
+    <div class="modal">
+        <a href="/items/" class="modal-close">&times;</a>
+        <h2>Add New Item</h2>
+        <form method="post" action="{% url 'item_create' %}">
+            {% csrf_token %}
+            <label for="item-title">Title</label>
+            <input type="text" id="item-title" name="title" required placeholder="Enter item title">
+
+            <label for="item-desc">Description</label>
+            <textarea id="item-desc" name="description" rows="3" placeholder="Optional description"></textarea>
+
+            <button type="submit">Create Item</button>
+            <a href="/items/" style="display:inline-block; margin-left:1rem; color:#999; text-decoration:none;">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

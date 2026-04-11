@@ -1,0 +1,25 @@
+{% extends "testapp/base.html" %}
+{% load morph_tags %}
+
+{% block title %}Contact - Django Morph Test{% endblock %}
+
+{% block content %}
+<h1>Contact</h1>
+<p>Submit this form to test <strong>POST + redirect</strong> handling.</p>
+
+<div class="card">
+    <form method="post" action="{% url 'contact_submit' %}">
+        {% csrf_token %}
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" value="Test User" required>
+
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" value="test@example.com">
+
+        <label for="message">Message</label>
+        <textarea id="message" name="message" rows="4">Hello from django-morph!</textarea>
+
+        <button type="submit">Send Message</button>
+    </form>
+</div>
+{% endblock %}

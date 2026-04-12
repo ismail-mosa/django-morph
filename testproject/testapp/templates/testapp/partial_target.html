@@ -1,0 +1,110 @@
+{% extends "testapp/base.html" %}
+{% load morph_tags %}
+
+{% block title %}Partial Target{% endblock %}
+
+{% block content %}
+<h1>Partial Morph Targets</h1>
+<p>These links use <code>data-morph-target</code> to update only a specific element instead of the entire page.</p>
+
+<div class="card" style="margin-bottom:2rem;">
+    <h3>1. Morph (default swap) — replaces the target element</h3>
+    <p>
+        <a href="/partial-target/"
+           data-morph-target="#box-1"
+           data-morph-push="false">Refresh Box</a>
+        — Only the box below updates. The rest of the page stays untouched.
+    </p>
+    <div id="box-1" style="padding:1rem; border:2px solid {{ random_color }}; border-radius:8px; background:{{ random_color }}11;">
+        <strong>Random Number:</strong> <span style="font-size:1.5rem;">{{ random_number }}</span><br>
+        <strong>Color:</strong> {{ random_color }}<br>
+        <strong>Time:</strong> {{ timestamp }}
+    </div>
+</div>
+
+<div class="card" style="margin-bottom:2rem;">
+    <h3>2. innerHTML swap — replaces target's children</h3>
+    <p>
+        <a href="/partial-target/"
+           data-morph-target="#content-area"
+           data-morph-swap="innerHTML">Replace Content</a>
+        — The <code>#content-area</code> div's children are swapped.
+    </p>
+    <div id="content-area" style="padding:1rem; background:#f0f8ff; border-radius:8px;">
+        <p>Current animal: <strong>{{ random_animal }}</strong></p>
+        <p>Generated at: {{ timestamp }}</p>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom:2rem;">
+    <h3>3. beforeend swap (append) — adds content below existing</h3>
+    <p>
+        <a href="/partial-target/"
+           data-morph-target="#append-target"
+           data-morph-swap="beforeend">Append Item</a>
+        — New items are added to the bottom without removing existing ones.
+    </p>
+    <div style="padding:1rem; background:#f0fff0; border-radius:8px;">
+        <div>Initial item (always here)</div>
+        <div id="append-target">
+            <div>New item #1 ({{ timestamp }})</div>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom:2rem;">
+    <h3>4. afterbegin swap (prepend) — adds content above existing</h3>
+    <p>
+        <a href="/partial-target/"
+           data-morph-target="#prepend-target"
+           data-morph-swap="afterbegin">Prepend Item</a>
+        — New items are added to the top.
+    </p>
+    <div style="padding:1rem; background:#fff8f0; border-radius:8px;">
+        <div id="prepend-target">
+            <div>New item #1 ({{ timestamp }})</div>
+        </div>
+        <div>Initial item (always here)</div>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom:2rem;">
+    <h3>5. Form with partial target</h3>
+    <p>This form submits and only updates the result area below — not the whole page.</p>
+    <form method="post" action="/partial-target/"
+          data-morph-target="#form-result"
+          data-morph-swap="innerHTML">
+        {% csrf_token %}
+        <label>Your name:
+            <input type="text" name="name" value="World">
+        </label>
+        <button type="submit">Submit (partial)</button>
+    </form>
+    <div id="form-result" style="margin-top:0.5rem; padding:1rem; background:#f5f5ff; border-radius:8px;">
+        {% if name %}
+        <strong>Hello, {{ name }}!</strong> Submitted at {{ timestamp }}
+        {% else %}
+        <em>Form result will appear here...</em>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <h3>6. data-morph-push="true" — updates URL</h3>
+    <p>
+        <a href="/partial-target/"
+           data-morph-target="#box-1"
+           data-morph-push="true">Refresh + Update URL</a>
+        — Same partial update but the browser URL gets pushed to history.
+    </p>
+</div>
+
+<script>
+    window.__partialMorphCount = (window.__partialMorphCount || 0);
+    document.addEventListener("django-morph:updated", function (e) {
+        if (e.detail && e.detail.target) {
+            window.__partialMorphCount++;
+        }
+    });
+</script>
+{% endblock %}

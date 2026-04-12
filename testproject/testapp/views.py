@@ -1,6 +1,8 @@
 from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.http import HttpResponse
+import random
+import time
 
 
 def favicon(request):
@@ -158,3 +160,24 @@ def item_create(request):
             return redirect("/items/?add=1")
         return redirect("/items/")
     return redirect("/items/?add=1")
+
+
+def partial_target_demo(request):
+    colors = ["red", "blue", "green", "purple", "orange"]
+    random_color = random.choice(colors)
+    random_number = random.randint(1, 1000)
+    timestamp = time.strftime("%H:%M:%S")
+    animals = ["Dog", "Cat", "Bird", "Fish", "Rabbit", "Hamster", "Snake", "Turtle"]
+    random_animal = random.choice(animals)
+    name = request.POST.get("name") if request.method == "POST" else None
+    return render(
+        request,
+        "testapp/partial_target.html",
+        {
+            "random_color": random_color,
+            "random_number": random_number,
+            "timestamp": timestamp,
+            "random_animal": random_animal,
+            "name": name,
+        },
+    )

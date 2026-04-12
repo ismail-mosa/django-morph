@@ -59,7 +59,7 @@ See [DOCS.md](DOCS.md) for:
 
 - How it works (fetch → morph → history pipeline)
 - All template tags and HTML attributes
-- Common patterns (forms, redirects, JS libraries, partial responses, infinite scroll)
+- Common patterns (forms, redirects, JS libraries, partial morph targets, infinite scroll)
 - Events API
 - Script loading behavior
 - Auto-preserved elements

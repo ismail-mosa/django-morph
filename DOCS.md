@@ -176,6 +176,61 @@ Prevents **all children** inside the element from being morphed, removed, or add
 
 Unlike `data-morph-preserve`, this does not require children to have `id` attributes.
 
+### `data-morph-target`
+
+Targets a specific DOM element for morph instead of the entire page. Only the matching element is updated — the rest of the page stays untouched. The page title, head, and scripts outside the target are not affected.
+
+```html
+<a href="/stats/" data-morph-target="#stats-panel">Refresh Stats</a>
+
+<div id="stats-panel">
+    <p>Users: 1,247</p>
+    <p>Revenue: $12,345</p>
+</div>
+```
+
+Works with both links and forms:
+
+```html
+<form method="post" action="/search/" data-morph-target="#search-results">
+    <input name="q" placeholder="Search...">
+    <button type="submit">Search</button>
+</form>
+
+<div id="search-results">
+    <!-- Only this div updates on submit -->
+</div>
+```
+
+### `data-morph-swap`
+
+Controls how the new content is merged into the target element. Only used with `data-morph-target`.
+
+| Value | Behavior |
+|---|---|
+| `morph` (default) | Idiomorph diffs and patches the target element |
+| `innerHTML` | Replaces all children of the target |
+| `beforeend` | Appends new children to the end of the target |
+| `afterbegin` | Prepends new children to the start of the target |
+
+```html
+<!-- Append new items without removing existing ones -->
+<a href="/comments/" data-morph-target="#comment-list" data-morph-swap="beforeend">Load More</a>
+```
+
+### `data-morph-push`
+
+Controls whether partial morph updates the browser URL. Only used with `data-morph-target`.
+
+| Value | Behavior |
+|---|---|
+| `false` (default) | URL does not change |
+| `true` | URL is pushed to browser history |
+
+```html
+<a href="/page/2/" data-morph-target="#content" data-morph-push="true">Next Page</a>
+```
+
 ---
 
 ## Common Patterns
@@ -358,6 +413,72 @@ def item_list(request):
 
 When morphed, the partial HTML replaces the `#item-list` content. For full-page navigation, the complete template renders.
 
+### Partial Morph Targets
+
+Use `data-morph-target` to update only a specific element instead of the entire page. The server returns a full HTML page as usual — django-morph extracts the matching element and morphs only that part.
+
+**Refresh a panel without affecting the rest of the page:**
+
+```html
+<a href="/dashboard/" data-morph-target="#stats">Refresh Stats</a>
+
+<div id="stats">
+    <p>Users: {{ user_count }}</p>
+    <p>Revenue: {{ revenue }}</p>
+</div>
+```
+
+**Search-as-you-type:**
+
+```html
+<form method="get" action="/search/"
+      data-morph-target="#results"
+      data-morph-swap="innerHTML">
+    <input name="q" placeholder="Search...">
+</form>
+
+<div id="results">
+    {% for item in items %}
+    <div>{{ item.name }}</div>
+    {% endfor %}
+</div>
+```
+
+**Append items (infinite scroll / load more):**
+
+```html
+<a href="/feed/?page={{ next_page }}"
+   data-morph-target="#feed-items"
+   data-morph-swap="beforeend">Load More</a>
+
+<div id="feed-items">
+    {% for item in page_items %}
+    <div class="feed-item">{{ item.title }}</div>
+    {% endfor %}
+</div>
+```
+
+**Form submit with partial update:**
+
+```html
+<form method="post" action="/like/{{ post.id }}/"
+      data-morph-target="#like-count-{{ post.id }}"
+      data-morph-swap="innerHTML">
+    {% csrf_token %}
+    <button type="submit">Like</button>
+</form>
+
+<span id="like-count-{{ post.id }}">{{ post.likes }} likes</span>
+```
+
+**Update URL on partial morph:**
+
+```html
+<a href="/page/2/"
+   data-morph-target="#content"
+   data-morph-push="true">Next Page</a>
+```
+
 ### Infinite Scroll / Load More
 
 Append new content without replacing the existing DOM:
@@ -501,6 +622,30 @@ html.morph-loading .spinner {
     display: block;
 }
 ```
+
+### Programmatic API
+
+django-morph exposes `window.DjangoMorph` for JavaScript-driven navigation:
+
+```js
+// Navigate to a URL (full page morph)
+DjangoMorph.navigate("/dashboard/");
+
+// Navigate with partial target
+DjangoMorph.navigate("/stats/", { target: "#stats-panel" });
+
+// Navigate with partial target + swap + push
+DjangoMorph.navigate("/page/2/", {
+    target: "#content",
+    swap: "innerHTML",
+    push: true
+});
+
+// Refresh current page
+DjangoMorph.refresh();
+```
+
+Useful for: redirecting after AJAX, refreshing after WebSocket notifications, polling for updates.
 
 ---
 

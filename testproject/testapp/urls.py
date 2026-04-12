@@ -23,4 +23,5 @@ urlpatterns = [
     path("forms/", views.forms_page, name="forms"),
     path("forms/submit/", views.forms_submit, name="forms_submit"),
     path("live/", views.live_page, name="live"),
+    path("partial-target/", views.partial_target_demo, name="partial_target"),
 ]

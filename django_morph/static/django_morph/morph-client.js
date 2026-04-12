@@ -7,6 +7,9 @@
     var PRESERVE_CHILDREN_ATTR = "data-morph-preserve-children";
     var SKIP_ATTR = "data-morph";
     var STATIC_ATTR = "data-morph-static";
+    var TARGET_ATTR = "data-morph-target";
+    var SWAP_ATTR = "data-morph-swap";
+    var PUSH_ATTR = "data-morph-push";
     var LOADING_CLASS = "morph-loading";
     var UPDATED_EVENT = "django-morph:updated";
     var FETCH_START_EVENT = "django-morph:fetch-start";
@@ -152,11 +155,18 @@
         return entry;
     }
 
-    function morphResponse(html, url, isPopstate) {
-        var parser = new DOMParser();
-        var newDoc = parser.parseFromString(html, "text/html");
+    function getMorphOptions(el) {
+        var target = el.getAttribute(TARGET_ATTR);
+        if (!target) return null;
+        return {
+            target: target,
+            swap: el.getAttribute(SWAP_ATTR) || "morph",
+            push: el.getAttribute(PUSH_ATTR) === "true"
+        };
+    }
 
-        Idiomorph.morph(document.documentElement, newDoc.documentElement, {
+    function makeIdiomorphCallbacks() {
+        return {
             callbacks: {
                 beforeNodeMorphed: function (node) {
                     if (shouldPreserveNode(node)) return false;
@@ -185,24 +195,90 @@
                     }
                 }
             }
+        };
+    }
+
+    function morphResponse(html, url, isPopstate, morphOptions) {
+        var parser = new DOMParser();
+        var newDoc = parser.parseFromString(html, "text/html");
+
+        if (morphOptions && morphOptions.target) {
+            partialMorph(newDoc, morphOptions);
+        } else {
+            fullMorph(newDoc);
+        }
+
+        var scriptRoot = (morphOptions && morphOptions.target)
+            ? document.querySelector(morphOptions.target)
+            : null;
+
+        reexecuteScripts(scriptRoot).then(function () {
+            window.dispatchEvent(new CustomEvent(UPDATED_EVENT, {
+                detail: { url: url, target: morphOptions ? morphOptions.target : null }
+            }));
+            if (!morphOptions || !morphOptions.target) {
+                lastPathname = window.location.pathname + window.location.search;
+            }
         });
 
-        reexecuteScripts().then(function () {
-            window.dispatchEvent(new CustomEvent(UPDATED_EVENT));
-            lastPathname = window.location.pathname + window.location.search;
-        });
-
-        if (url) {
+        if (url && (!morphOptions || morphOptions.push || !morphOptions.target)) {
             if (isPopstate) {
                 history.replaceState({}, "", url);
+            } else if (morphOptions && morphOptions.target && !morphOptions.push) {
+                // no history change
             } else {
                 history.pushState({}, "", url);
             }
         }
     }
 
-    function reexecuteScripts() {
-        var scripts = document.querySelectorAll("script");
+    function fullMorph(newDoc) {
+        Idiomorph.morph(document.documentElement, newDoc.documentElement, makeIdiomorphCallbacks());
+
+        var newTitle = newDoc.querySelector("title");
+        if (newTitle && newTitle.textContent) {
+            document.title = newTitle.textContent;
+        }
+    }
+
+    function partialMorph(newDoc, morphOptions) {
+        var currentTarget = document.querySelector(morphOptions.target);
+        var newTarget = newDoc.querySelector(morphOptions.target);
+        if (!currentTarget || !newTarget) return;
+
+        var swap = morphOptions.swap;
+
+        if (swap === "beforeend" || swap === "append") {
+            while (newTarget.firstChild) {
+                currentTarget.appendChild(newTarget.firstChild);
+            }
+        } else if (swap === "afterbegin" || swap === "prepend") {
+            var existing = document.createDocumentFragment();
+            while (currentTarget.firstChild) {
+                existing.appendChild(currentTarget.firstChild);
+            }
+            while (newTarget.firstChild) {
+                currentTarget.appendChild(newTarget.firstChild);
+            }
+            while (existing.firstChild) {
+                currentTarget.appendChild(existing.firstChild);
+            }
+        } else if (swap === "innerHTML") {
+            while (currentTarget.firstChild) {
+                currentTarget.removeChild(currentTarget.firstChild);
+            }
+            while (newTarget.firstChild) {
+                currentTarget.appendChild(newTarget.firstChild);
+            }
+        } else {
+            Idiomorph.morph(currentTarget, newTarget, makeIdiomorphCallbacks());
+        }
+    }
+
+    function reexecuteScripts(root) {
+        var scripts = root
+            ? root.querySelectorAll("script")
+            : document.querySelectorAll("script");
         var staticPromises = [];
         var inlineScripts = [];
 
@@ -254,10 +330,10 @@
         }
     }
 
-    function morphFetch(url, options, isPopstate) {
+    function morphFetch(url, options, isPopstate, morphOptions) {
         abortCurrentRequest();
 
-        if (!isPopstate) {
+        if (!isPopstate && (!morphOptions || !morphOptions.target)) {
             saveScrollPosition();
         }
         setLoading(true);
@@ -266,7 +342,7 @@
         var cached = getPrefetched(url);
         if (cached && (!options || !options.method || options.method === "GET")) {
             setLoading(false);
-            morphResponse(cached.html, cached.redirectUrl || url, isPopstate);
+            morphResponse(cached.html, cached.redirectUrl || url, isPopstate, morphOptions);
             if (isPopstate) {
                 var targetUrl = window.location.href.split("#")[0];
                 var saved = scrollPositions[targetUrl];
@@ -275,7 +351,7 @@
                 } else {
                     window.scrollTo(0, 0);
                 }
-            } else {
+            } else if (!morphOptions || !morphOptions.target) {
                 window.scrollTo(0, 0);
             }
             dispatchFetchEvent(FETCH_END_EVENT, cached.redirectUrl || url);
@@ -328,7 +404,7 @@
             })
             .then(function (result) {
                 currentController = null;
-                morphResponse(result.html, result.redirectUrl, isPopstate);
+                morphResponse(result.html, result.redirectUrl, isPopstate, morphOptions);
                 if (isPopstate) {
                     var targetUrl = window.location.href.split("#")[0];
                     var saved = scrollPositions[targetUrl];
@@ -337,7 +413,7 @@
                     } else {
                         window.scrollTo(0, 0);
                     }
-                } else {
+                } else if (!morphOptions || !morphOptions.target) {
                     window.scrollTo(0, 0);
                 }
                 dispatchFetchEvent(FETCH_END_EVENT, result.redirectUrl);
@@ -345,6 +421,10 @@
             .catch(function (err) {
                 currentController = null;
                 if (err.name === "AbortError") return;
+                if (morphOptions && morphOptions.target) {
+                    setLoading(false);
+                    return;
+                }
                 window.location.href = url;
             })
             .finally(function () {
@@ -399,6 +479,7 @@
         if (!isLocalLink(link)) return;
         if (shouldSkipElement(link)) return;
         if (isHashLink(link)) return;
+        if (link.hasAttribute(TARGET_ATTR)) return;
 
         var url = link.href;
         clearTimeout(prefetchTimer);
@@ -446,7 +527,8 @@
         }
 
         e.preventDefault();
-        morphFetch(link.href);
+        var morphOptions = getMorphOptions(link);
+        morphFetch(link.href, null, false, morphOptions);
     });
 
     document.addEventListener("submit", function (e) {
@@ -459,6 +541,7 @@
         var method = (form.getAttribute("method") || "GET").toUpperCase();
         var action = form.getAttribute("action") || window.location.href;
         var options = { method: method };
+        var morphOptions = getMorphOptions(form);
 
         if (method === "GET") {
             var params = new URLSearchParams(new FormData(form)).toString();
@@ -469,7 +552,7 @@
             options.body = new FormData(form);
         }
 
-        morphFetch(action, options);
+        morphFetch(action, options, false, morphOptions);
     });
 
     window.addEventListener("popstate", function () {
@@ -487,4 +570,13 @@
     document.querySelectorAll("script[data-morph-static][src]").forEach(function (s) {
         executedStaticScripts.add(s.getAttribute("src"));
     });
+
+    window.DjangoMorph = {
+        navigate: function (url, morphOptions) {
+            morphFetch(url, null, false, morphOptions || null);
+        },
+        refresh: function () {
+            morphFetch(window.location.href, null, true);
+        }
+    };
 })();

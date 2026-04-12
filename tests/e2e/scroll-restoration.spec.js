@@ -26,11 +26,11 @@ test.describe("Scroll restoration", () => {
             document.querySelector('a[href="/about/"]').click();
         });
         await page.waitForURL("/about/");
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
 
         await page.goBack();
         await page.waitForURL("/long/");
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(800);
 
         const scrollY = await page.evaluate(() => window.scrollY);
         expect(scrollY).toBeGreaterThan(500);

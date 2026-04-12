@@ -9,21 +9,30 @@ register = template.Library()
 @register.simple_tag
 def morph_js():
     css = """<style>
-html.morph-loading::before {
-    content: '';
+#morph-progress-bar {
     position: fixed;
     top: 0;
     left: 0;
     height: 3px;
     background: #29d;
     z-index: 99999;
-    animation: morph-progress 300ms ease-in-out;
+    width: 0;
+    opacity: 0;
+    pointer-events: none;
 }
-@keyframes morph-progress {
-    0% { width: 0; }
-    100% { width: 100%; }
+html.morph-loading::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: rgba(34,170,255,0.15);
+    z-index: 99998;
+    pointer-events: none;
 }
-</style>"""
+</style>
+<div id="morph-progress-bar"></div>"""
 
     idiomorph_url = static("django_morph/idiomorph.js")
 

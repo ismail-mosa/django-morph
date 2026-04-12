@@ -14,6 +14,7 @@
     var UPDATED_EVENT = "django-morph:updated";
     var FETCH_START_EVENT = "django-morph:fetch-start";
     var FETCH_END_EVENT = "django-morph:fetch-end";
+    var ERROR_EVENT = "django-morph:error";
     var REQUEST_TIMEOUT = 15000;
     var PREFETCH_DELAY = 100;
     var PREFETCH_MAX = 5;
@@ -26,6 +27,9 @@
     var prefetchCache = new Map();
     var prefetchTimer = null;
     var executedStaticScripts = new Set();
+    var progressBar = null;
+    var progressBarTimer = null;
+    var savedFocusId = null;
 
     function getCookie(name) {
         var value = "; " + document.cookie;
@@ -120,8 +124,60 @@
         }
     }
 
+    function startProgress() {
+        if (!progressBar) {
+            progressBar = document.getElementById("morph-progress-bar");
+        }
+        if (!progressBar) return;
+        progressBar.style.transition = "none";
+        progressBar.style.width = "0%";
+        progressBar.style.opacity = "1";
+        requestAnimationFrame(function () {
+            progressBar.style.transition = "width 200ms ease-out";
+            progressBar.style.width = "80%";
+        });
+    }
+
+    function finishProgress() {
+        if (!progressBar) {
+            progressBar = document.getElementById("morph-progress-bar");
+        }
+        if (!progressBar) return;
+        progressBar.style.transition = "width 150ms ease-in";
+        progressBar.style.width = "100%";
+        setTimeout(function () {
+            progressBar.style.transition = "opacity 300ms ease-out";
+            progressBar.style.opacity = "0";
+            setTimeout(function () {
+                progressBar.style.width = "0%";
+            }, 300);
+        }, 150);
+    }
+
     function dispatchFetchEvent(name, url) {
         window.dispatchEvent(new CustomEvent(name, { detail: { url: url } }));
+    }
+
+    function saveFocus() {
+        var active = document.activeElement;
+        if (!active || active === document.body || active === document.documentElement) {
+            savedFocusId = null;
+            return;
+        }
+        savedFocusId = active.getAttribute("id");
+        if (!savedFocusId) {
+            savedFocusId = "__morph_focus_" + Date.now();
+            active.setAttribute("id", savedFocusId);
+        }
+    }
+
+    function restoreFocus() {
+        if (!savedFocusId) return;
+        var el = document.getElementById(savedFocusId);
+        if (el) {
+            try { el.focus(); } catch (e) {}
+        }
+        savedFocusId = null;
     }
 
     function saveScrollPosition() {
@@ -198,34 +254,48 @@
         };
     }
 
+    function hasViewTransitions() {
+        return typeof document.startViewTransition === "function";
+    }
+
     function morphResponse(html, url, isPopstate, morphOptions) {
         var parser = new DOMParser();
         var newDoc = parser.parseFromString(html, "text/html");
 
-        if (morphOptions && morphOptions.target) {
-            partialMorph(newDoc, morphOptions);
-        } else {
-            fullMorph(newDoc);
-        }
+        saveFocus();
 
-        var scriptRoot = (morphOptions && morphOptions.target)
-            ? document.querySelector(morphOptions.target)
-            : null;
-
-        reexecuteScripts(scriptRoot).then(function () {
-            window.dispatchEvent(new CustomEvent(UPDATED_EVENT, {
-                detail: { url: url, target: morphOptions ? morphOptions.target : null }
-            }));
-            if (!morphOptions || !morphOptions.target) {
-                lastPathname = window.location.pathname + window.location.search;
+        var doMorph = function () {
+            if (morphOptions && morphOptions.target) {
+                partialMorph(newDoc, morphOptions);
+            } else {
+                fullMorph(newDoc);
             }
-        });
+
+            var scriptRoot = (morphOptions && morphOptions.target)
+                ? document.querySelector(morphOptions.target)
+                : null;
+
+            reexecuteScripts(scriptRoot).then(function () {
+                restoreFocus();
+                window.dispatchEvent(new CustomEvent(UPDATED_EVENT, {
+                    detail: { url: url, target: morphOptions ? morphOptions.target : null }
+                }));
+                if (!morphOptions || !morphOptions.target) {
+                    lastPathname = window.location.pathname + window.location.search;
+                }
+            });
+        };
+
+        if (hasViewTransitions() && !isPopstate && (!morphOptions || !morphOptions.target)) {
+            document.startViewTransition(doMorph);
+        } else {
+            doMorph();
+        }
 
         if (url && (!morphOptions || morphOptions.push || !morphOptions.target)) {
             if (isPopstate) {
                 history.replaceState({}, "", url);
             } else if (morphOptions && morphOptions.target && !morphOptions.push) {
-                // no history change
             } else {
                 history.pushState({}, "", url);
             }
@@ -337,11 +407,13 @@
             saveScrollPosition();
         }
         setLoading(true);
+        startProgress();
         dispatchFetchEvent(FETCH_START_EVENT, url);
 
         var cached = getPrefetched(url);
         if (cached && (!options || !options.method || options.method === "GET")) {
             setLoading(false);
+            finishProgress();
             morphResponse(cached.html, cached.redirectUrl || url, isPopstate, morphOptions);
             if (isPopstate) {
                 var targetUrl = window.location.href.split("#")[0];
@@ -381,7 +453,11 @@
             .then(function (response) {
                 clearTimeout(timeoutId);
                 if (!response.ok) {
-                    throw new Error("HTTP " + response.status);
+                    return response.text().then(function (html) {
+                        return { html: html, status: response.status, isError: true, redirectUrl: url };
+                    }).catch(function () {
+                        throw new Error("HTTP " + response.status);
+                    });
                 }
                 var redirectUrl = response.headers.get(REDIRECT_HEADER);
                 if (redirectUrl) {
@@ -404,6 +480,15 @@
             })
             .then(function (result) {
                 currentController = null;
+                if (result.isError) {
+                    window.dispatchEvent(new CustomEvent(ERROR_EVENT, {
+                        detail: { url: url, status: result.status }
+                    }));
+                    if (!morphOptions || !morphOptions.target) {
+                        morphResponse(result.html, result.redirectUrl, isPopstate, morphOptions);
+                    }
+                    return;
+                }
                 morphResponse(result.html, result.redirectUrl, isPopstate, morphOptions);
                 if (isPopstate) {
                     var targetUrl = window.location.href.split("#")[0];
@@ -421,6 +506,9 @@
             .catch(function (err) {
                 currentController = null;
                 if (err.name === "AbortError") return;
+                window.dispatchEvent(new CustomEvent(ERROR_EVENT, {
+                    detail: { url: url, error: err.message }
+                }));
                 if (morphOptions && morphOptions.target) {
                     setLoading(false);
                     return;
@@ -430,6 +518,7 @@
             .finally(function () {
                 clearTimeout(timeoutId);
                 setLoading(false);
+                finishProgress();
             });
     }
 

@@ -602,6 +602,16 @@ document.addEventListener("django-morph:fetch-end", function (e) {
 });
 ```
 
+### `django-morph:error`
+
+Fired when a morph request fails. `event.detail` contains `url` and either `status` (HTTP error) or `error` (network failure message).
+
+```js
+document.addEventListener("django-morph:error", function (e) {
+    console.log("Failed:", e.detail.url, e.detail.status || e.detail.error);
+});
+```
+
 ### Loading Indicator
 
 When a morph fetch is in progress, the `morph-loading` CSS class is added to `<html>`. The default styles (from `{% morph_js %}`) show a 3px blue progress bar at the top of the page.
@@ -794,9 +804,124 @@ Password managers and browser autofill may not re-populate values after morph, s
 
 ---
 
+## View Transitions
+
+Django-morph uses the [View Transitions API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API) for smooth cross-fade animations during full-page morphs. This provides a polished SPA-like feel with zero configuration.
+
+**Supported in:** Chrome 111+, Edge 111+, Safari 18+. Falls back to instant DOM swap in unsupported browsers.
+
+**Customize the transition:**
+
+```css
+::view-transition-old(root) {
+    animation: 150ms fade-out ease-in;
+}
+::view-transition-new(root) {
+    animation: 150ms fade-in ease-out;
+}
+```
+
+To disable view transitions globally:
+
+```css
+* {
+    view-transition-name: none !important;
+}
+```
+
+## Error Handling
+
+When a morph request fails (4xx/5xx), django-morph morphs the error page content instead of forcing a hard reload. This means Django's debug error pages render inline, and your custom 404/500 templates display seamlessly.
+
+A `django-morph:error` event fires with `detail.url` and either `detail.status` (for HTTP errors) or `detail.error` (for network failures):
+
+```js
+document.addEventListener("django-morph:error", function (e) {
+    console.error("Morph failed:", e.detail);
+});
+```
+
+Network failures (offline, DNS errors, timeouts) still fall back to a hard reload.
+
+## Focus Restoration
+
+After each morph, django-morph attempts to restore focus to the previously focused element (matched by `id`). This preserves keyboard navigation flow and screen reader position.
+
+For partial morphs (`data-morph-target`), focus is not affected outside the target.
+
+## Testing
+
+### Django Test Helpers
+
+Django-morph includes a `MorphTestCase` class and `MorphClient` for testing morph-specific behavior:
+
+```python
+from django_morph.test import MorphTestCase
+
+class MyTests(MorphTestCase):
+    def test_morph_redirect(self):
+        response = self.client.post("/contact/", {"name": "Test"})
+        self.assertMorphRedirect(response, "/success/")
+
+    def test_morph_vary_header(self):
+        response = self.client.get("/about/")
+        self.assertMorphVary(response)
+
+    def test_morph_ok(self):
+        response = self.client.get("/about/")
+        self.assertMorphOK(response)
+```
+
+`MorphClient` automatically sends `X-Django-Morph: true` on every request, so your middleware behaves as it would during a real morph navigation.
+
+### E2E Tests
+
+The project includes 34 Playwright E2E tests covering all core features. Run them with:
+
+```bash
+npm install @playwright/test
+npx playwright install chromium
+npx playwright test --config tests/e2e/playwright.config.js
+```
+
+---
+
+## django-morph vs HTMX
+
+A common question: when should you use django-morph vs HTMX?
+
+### Use django-morph when:
+
+- You have an **existing Django project** and want it to "feel fast" with minimal changes
+- You want **zero per-element markup** — no adding attributes to every link and form
+- Your views already return full HTML pages and you don't want to change them
+- You want Django-specific integrations (CSRF, messages, redirects) handled automatically
+- Your team doesn't want to learn a new paradigm — Django-morph is invisible
+
+### Use HTMX when:
+
+- You need **partial page updates** as the primary interaction model (tabs, inline editing, live search)
+- You want fine-grained control over what updates and when (`hx-target`, `hx-trigger`, `hx-swap`)
+- You need **real-time features** (SSE, WebSocket via extensions)
+- You're building a highly interactive UI with many independent dynamic regions
+- You're not using Django (HTMX is backend-agnostic)
+
+### Use django-morph AND HTMX when:
+
+- You want full-page SPA navigation for free (django-morph) plus interactive widgets (HTMX)
+- Add `data-morph="false"` to links/forms that HTMX should handle
+
+### The migration path
+
+Many projects start with django-morph and later add HTMX for specific interactive components. When the complexity grows past what django-morph handles well, HTMX is the natural next step.
+
+---
+
 ## Browser Support
 
 All modern browsers (Chrome, Firefox, Safari, Edge). Requires `fetch`, `DOMParser`, and `AbortController`.
+
+View Transitions API: Chrome 111+, Edge 111+, Safari 18+. Gracefully degrades in unsupported browsers.
 
 ## License
 

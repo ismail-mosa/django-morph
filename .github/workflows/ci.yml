@@ -50,3 +50,27 @@ jobs:
 
       - name: Format check
         run: ruff format --check django_morph tests
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Django
+        run: pip install Django
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Playwright
+        run: npm install @playwright/test && npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        run: npx playwright test --config tests/e2e/playwright.config.js

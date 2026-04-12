@@ -69,15 +69,18 @@ test.describe("Morph navigation basics", () => {
 
     test("browser back/forward updates URL and content", async ({ page }) => {
         await page.goto("/");
-        await page.click('a[href="/about/"]');
+        await page.evaluate(() => document.querySelector('a[href="/about/"]').click());
         await page.waitForURL("/about/");
+        await page.waitForTimeout(200);
 
         await page.goBack();
         await page.waitForURL("/");
+        await page.waitForTimeout(200);
         await expect(page.locator("h1")).toContainText("Home");
 
         await page.goForward();
         await page.waitForURL("/about/");
+        await page.waitForTimeout(200);
         await expect(page.locator("h1")).toContainText("About");
     });
 

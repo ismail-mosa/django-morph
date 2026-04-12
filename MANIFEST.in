@@ -1,3 +1,4 @@
 include LICENSE
 include README.md
+include DOCS.md
 recursive-include django_morph/static *

@@ -8,7 +8,7 @@
     <a href="{% url 'task_create' %}" class="btn btn-primary"><i class="bi-plus-circle"></i> New Task</a>
 </div>
 
-<div class="row g-3">
+<div class="row g-3" id="board-columns">
     <div class="col-md-4">
         <div class="card bg-light board-col">
             <div class="card-header bg-secondary text-white">
@@ -21,7 +21,7 @@
                     <div class="card-body p-2">
                         <div class="d-flex justify-content-between">
                             <a href="{% url 'task_detail' task.pk %}" class="text-decoration-none fw-bold small">{{ task.title }}</a>
-                            <form method="post" action="{% url 'task_toggle' task.pk %}" class="d-inline">
+                            <form method="post" action="{% url 'task_toggle' task.pk %}" class="d-inline" data-morph-target="#board-columns">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-sm btn-outline-secondary p-0 px-1" title="Move to Doing">
                                     <i class="bi-arrow-right"></i>
@@ -50,7 +50,7 @@
                     <div class="card-body p-2">
                         <div class="d-flex justify-content-between">
                             <a href="{% url 'task_detail' task.pk %}" class="text-decoration-none fw-bold small">{{ task.title }}</a>
-                            <form method="post" action="{% url 'task_toggle' task.pk %}" class="d-inline">
+                            <form method="post" action="{% url 'task_toggle' task.pk %}" class="d-inline" data-morph-target="#board-columns">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-sm btn-outline-secondary p-0 px-1" title="Move to Done">
                                     <i class="bi-arrow-right"></i>
@@ -79,7 +79,7 @@
                     <div class="card-body p-2">
                         <div class="d-flex justify-content-between">
                             <a href="{% url 'task_detail' task.pk %}" class="text-decoration-none fw-bold small text-decoration-line-through opacity-75">{{ task.title }}</a>
-                            <form method="post" action="{% url 'task_toggle' task.pk %}" class="d-inline">
+                            <form method="post" action="{% url 'task_toggle' task.pk %}" class="d-inline" data-morph-target="#board-columns">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-sm btn-outline-secondary p-0 px-1" title="Move to To Do">
                                     <i class="bi-arrow-repeat"></i>
@@ -95,5 +95,12 @@
             </div>
         </div>
     </div>
+</div>
+
+<div class="mt-3">
+    <small class="text-muted">
+        <i class="bi-info-circle"></i>
+        Toggle buttons use <code>data-morph-target="#board-columns"</code> — only the board columns update, not the entire page.
+    </small>
 </div>
 {% endblock %}

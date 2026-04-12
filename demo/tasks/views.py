@@ -5,6 +5,16 @@ from .models import Task
 from .forms import TaskForm
 
 
+def demo_home(request):
+    return render(request, "tasks/demo_home.html")
+
+
+def trigger_error(request):
+    raise Exception(
+        "Deliberate 500 error — this demonstrates django-morph error handling."
+    )
+
+
 def task_list(request):
     status_filter = request.GET.get("status", "")
     search = request.GET.get("q", "")

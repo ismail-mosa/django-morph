@@ -14,6 +14,10 @@
         .task-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .board-col { min-height: 300px; }
         .toast-container { z-index: 9999; }
+        #morph-loading-spinner { display: none; }
+        #morph-loading-spinner.active { display: inline-block; }
+        @keyframes morph-spin { to { transform: rotate(360deg); } }
+        .morph-spinner-icon { animation: morph-spin 0.6s linear infinite; }
     </style>
 </head>
 <body>
@@ -27,19 +31,29 @@
             </button>
             <div class="collapse navbar-collapse" id="mainNav">
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item"><a class="nav-link" href="{% url 'task_list' %}"><i class="bi-list-ul"></i> List</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'demo_home' %}"><i class="bi-house"></i> Demo Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'task_list' %}"><i class="bi-list-ul"></i> Tasks</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'task_board' %}"><i class="bi-columns-gap"></i> Board</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'task_create' %}"><i class="bi-plus-circle"></i> New Task</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'task_export' %}" data-morph="false"><i class="bi-download"></i> Export CSV</a></li>
+                    <li class="nav-item"><a class="nav-link text-warning" href="{% url 'trigger_error' %}"><i class="bi-bug"></i> Trigger Error</a></li>
                 </ul>
-                <div class="navbar-text text-light" id="morph-counter" data-morph-preserve="true">
-                    <small class="opacity-75">Morphs: <span id="morph-count">0</span></small>
+                <div class="d-flex align-items-center gap-3">
+                    <span id="morph-loading-spinner" class="text-warning">
+                        <i class="bi-arrow-repeat morph-spinner-icon"></i>
+                    </span>
+                    <button class="btn btn-sm btn-outline-light" onclick="DjangoMorph.refresh()" title="Refresh page via morph">
+                        <i class="bi-arrow-clockwise"></i>
+                    </button>
+                    <div class="navbar-text text-light" id="morph-counter" data-morph-preserve="true">
+                        <small class="opacity-75">Morphs: <span id="morph-count">0</span></small>
+                    </div>
                 </div>
             </div>
         </div>
     </nav>
 
-    <div class="toast-container position-fixed top-0 end-0 p-3">
+    <div class="toast-container position-fixed top-0 end-0 p-3" data-morph-preserve-children>
         {% if messages %}
         {% for message in messages %}
         <div class="toast show align-items-center text-bg-{{ message.tags }} border-0" role="alert">
@@ -78,6 +92,15 @@
                     if (inst) inst.hide();
                 }, 3000);
             });
+        });
+
+        document.addEventListener("django-morph:fetch-start", function () {
+            var spinner = document.getElementById("morph-loading-spinner");
+            if (spinner) spinner.classList.add("active");
+        });
+        document.addEventListener("django-morph:fetch-end", function () {
+            var spinner = document.getElementById("morph-loading-spinner");
+            if (spinner) spinner.classList.remove("active");
         });
     </script>
 </body>

@@ -1,0 +1,231 @@
+{% extends "tasks/base.html" %}
+
+{% block title %}Feature Tour{% endblock %}
+
+{% block content %}
+<div class="text-center mb-5 pt-3">
+    <h1 class="display-5 fw-bold">django-morph Demo</h1>
+    <p class="lead text-muted">Every feature, live and interactive. Navigate away and come back — your state survives.</p>
+</div>
+
+<a href="#preserved-elements" class="btn btn-outline-secondary mb-4"><i class="bi-link-45deg"></i> Skip to Preserved Elements</a>
+<a href="#anchor-section" class="btn btn-outline-secondary mb-4 ms-2"><i class="bi-hash"></i> Test Hash Links</a>
+
+<div class="row g-4 mb-5" id="features">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi-lightning-charge text-primary"></i> SPA Navigation</h5>
+                <p class="card-text">Click any link in the navbar. The page morphs — no full reload. The morph counter tracks every DOM patch.</p>
+                <a href="{% url 'task_list' %}" class="btn btn-sm btn-primary">Go to Tasks</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-success">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi-bullseye text-success"></i> Partial Morph</h5>
+                <p class="card-text">On the task list, the search form and filter tabs use <code>data-morph-target</code> to update only the task grid.</p>
+                <a href="{% url 'task_list' %}" class="btn btn-sm btn-success">Try Search &amp; Filters</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-warning">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi-signpost text-warning"></i> URL Push Control</h5>
+                <p class="card-text">One filter tab on the task list uses <code>data-morph-push="true"</code> to push URL without morphing — check the address bar.</p>
+                <a href="{% url 'task_list' %}" class="btn btn-sm btn-warning">See it in Action</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-info">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi-columns-gap text-info"></i> Board View</h5>
+                <p class="card-text">Toggle forms on the board use partial morph targets so only the columns update, not the entire page.</p>
+                <a href="{% url 'task_board' %}" class="btn btn-sm btn-info">Open Board</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-danger">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi-bug text-danger"></i> Error Handling</h5>
+                <p class="card-text">Errors are morphed into the page instead of a hard reload. Try the "Trigger Error" link in the navbar.</p>
+                <a href="{% url 'trigger_error' %}" class="btn btn-sm btn-danger">Trigger 500 Error</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 border-secondary">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi-upload text-secondary"></i> File Input</h5>
+                <p class="card-text">The task form has a file input that's automatically preserved during morph — your selection survives navigation.</p>
+                <a href="{% url 'task_create' %}" class="btn btn-sm btn-secondary">Create a Task</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr id="preserved-elements" class="my-5">
+
+<h2 class="mb-4"><i class="bi-shield-check"></i> Preserved Elements</h2>
+<p class="text-muted mb-4">These elements survive page morphs. Navigate to another page and come back — their state is intact.</p>
+
+<div class="row g-4 mb-5">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi-clock"></i> Live Clock <code class="float-end">data-morph-preserve</code></div>
+            <div class="card-body text-center" data-morph-preserve="true" id="live-clock">
+                <div class="display-4 fw-mono" id="clock-time">--:--:--</div>
+                <small class="text-muted">This element persists across navigations</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi-music-note-beamed"></i> Audio Player <code class="float-end">auto-preserved</code></div>
+            <div class="card-body text-center">
+                <audio controls id="demo-audio" style="width:100%; max-width:400px;">
+                    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+                    Your browser does not support audio.
+                </audio>
+                <small class="text-muted d-block mt-2">Play this, then navigate away. It keeps playing.</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi-brush"></i> Canvas <code class="float-end">auto-preserved</code></div>
+            <div class="card-body text-center">
+                <canvas id="demo-canvas" width="400" height="200" style="border:1px solid #dee2e6; border-radius:0.375rem; cursor:crosshair; max-width:100%;"></canvas>
+                <small class="text-muted d-block mt-2">Draw something, then navigate. Your drawing persists.</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header"><i class="bi-pencil-square"></i> Scratch Pad <code class="float-end">auto-preserved</code></div>
+            <div class="card-body">
+                <div contenteditable="true" id="demo-scratchpad" style="min-height:160px; border:1px solid #dee2e6; border-radius:0.375rem; padding:0.75rem; outline:none;" class="text-muted">Type something here. Navigate away and come back — your text survives because this div is contenteditable.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr id="anchor-section" class="my-5">
+
+<h2 class="mb-4"><i class="bi-hash"></i> Hash / Anchor Links</h2>
+<p class="text-muted mb-3">These links scroll within this page. They work correctly with morph — no snap-back or full reload.</p>
+<ul class="list-group mb-4">
+    <li class="list-group-item"><a href="#features"><i class="bi-arrow-up"></i> Jump to Features</a></li>
+    <li class="list-group-item"><a href="#preserved-elements"><i class="bi-arrow-up"></i> Jump to Preserved Elements</a></li>
+    <li class="list-group-item"><a href="#anchor-section"><i class="bi-arrow-up"></i> Jump to Anchor Section (this section)</a></li>
+    <li class="list-group-item"><a href="#bottom"><i class="bi-arrow-down"></i> Jump to Bottom</a></li>
+</ul>
+
+<hr class="my-5">
+
+<h2 class="mb-4"><i class="bi-code-slash"></i> Programmatic API</h2>
+<p class="text-muted mb-3">Use the browser console to try these:</p>
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h6><code>DjangoMorph.navigate(url)</code></h6>
+                <p class="small text-muted mb-2">Navigate programmatically with morph.</p>
+                <button class="btn btn-sm btn-outline-primary" onclick="DjangoMorph.navigate('{% url 'task_list' %}')">Navigate to Tasks</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h6><code>DjangoMorph.refresh()</code></h6>
+                <p class="small text-muted mb-2">Refresh the current page with morph. Also available in the navbar.</p>
+                <button class="btn btn-sm btn-outline-primary" onclick="DjangoMorph.refresh()">Refresh Now</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr class="my-5">
+
+<h2 class="mb-4"><i class="bi-gear"></i> Events</h2>
+<p class="text-muted mb-3">The navbar shows a loading spinner during morph fetches. These events power it:</p>
+<div class="table-responsive">
+    <table class="table table-sm">
+        <thead><tr><th>Event</th><th>When</th><th>Used For</th></tr></thead>
+        <tbody>
+            <tr><td><code>django-morph:fetch-start</code></td><td>Fetch begins</td><td>Show loading indicator</td></tr>
+            <tr><td><code>django-morph:fetch-end</code></td><td>Fetch completes</td><td>Hide loading indicator</td></tr>
+            <tr><td><code>django-morph:updated</code></td><td>DOM patched</td><td>Re-init third-party JS</td></tr>
+            <tr><td><code>django-morph:error</code></td><td>Fetch fails</td><td>Show error feedback</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="text-center py-5" id="bottom">
+    <p class="text-muted">That's every feature. Try breaking things!</p>
+    <a href="{% url 'task_list' %}" class="btn btn-primary"><i class="bi-clipboard-check"></i> Go to TaskBoard</a>
+</div>
+
+<script>
+(function () {
+    var clockEl = document.getElementById("clock-time");
+    if (clockEl) {
+        function tick() {
+            var now = new Date();
+            var h = String(now.getHours()).padStart(2, "0");
+            var m = String(now.getMinutes()).padStart(2, "0");
+            var s = String(now.getSeconds()).padStart(2, "0");
+            var el = document.getElementById("clock-time");
+            if (el) el.textContent = h + ":" + m + ":" + s;
+        }
+        tick();
+        setInterval(tick, 1000);
+    }
+
+    var canvas = document.getElementById("demo-canvas");
+    if (canvas && !canvas._demoDrawInit) {
+        canvas._demoDrawInit = true;
+        var ctx = canvas.getContext("2d");
+        var drawing = false;
+        var lastX = 0, lastY = 0;
+        ctx.strokeStyle = "#0d6efd";
+        ctx.lineWidth = 2;
+        ctx.lineCap = "round";
+
+        function getPos(e) {
+            var rect = canvas.getBoundingClientRect();
+            var scaleX = canvas.width / rect.width;
+            var scaleY = canvas.height / rect.height;
+            return {
+                x: (e.clientX - rect.left) * scaleX,
+                y: (e.clientY - rect.top) * scaleY,
+            };
+        }
+
+        canvas.addEventListener("mousedown", function (e) {
+            drawing = true;
+            var pos = getPos(e);
+            lastX = pos.x;
+            lastY = pos.y;
+        });
+        canvas.addEventListener("mousemove", function (e) {
+            if (!drawing) return;
+            var pos = getPos(e);
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            lastX = pos.x;
+            lastY = pos.y;
+        });
+        canvas.addEventListener("mouseup", function () { drawing = false; });
+        canvas.addEventListener("mouseleave", function () { drawing = false; });
+    }
+})();
+</script>
+{% endblock %}

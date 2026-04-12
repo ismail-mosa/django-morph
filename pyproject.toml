@@ -1,17 +1,45 @@
 [build-system]
-requires = ["setuptools>=68.0", "wheel"]
+requires = ["setuptools>=68.0,<77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "django-morph"
 version = "0.1.0"
-description = "Transform Django into a seamless SPA-like experience using Idiomorph for DOM patching."
+description = "Zero-config SPA-like navigation for Django using Idiomorph DOM patching. Add middleware + one template tag, your entire site navigates without full reloads."
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.8"
 dependencies = [
     "Django>=3.2",
 ]
+keywords = ["django", "spa", "morph", "idiomorph", "htmx-alternative", "ajax", "pjax", "dom-patching", "single-page-application"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Web Environment",
+    "Framework :: Django",
+    "Framework :: Django :: 3.2",
+    "Framework :: Django :: 4.0",
+    "Framework :: Django :: 4.1",
+    "Framework :: Django :: 4.2",
+    "Framework :: Django :: 5.0",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+]
 
-[project.packages.find]
+[project.urls]
+Homepage = "https://github.com/ismail-mosa/django-morph"
+Documentation = "https://github.com/ismail-mosa/django-morph/blob/master/DOCS.md"
+Source = "https://github.com/ismail-mosa/django-morph"
+Issues = "https://github.com/ismail-mosa/django-morph/issues"
+Changelog = "https://github.com/ismail-mosa/django-morph/blob/master/CHANGELOG.md"
+
+[tool.setuptools.packages.find]
 include = ["django_morph*"]

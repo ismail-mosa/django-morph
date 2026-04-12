@@ -132,7 +132,31 @@ Adds `data-morph-preserve="true"` to an element, preventing it from being modifi
 
 ## HTML Attributes
 
-### `data-morph-preserve`
+### Shorthand Prefix
+
+All `data-morph-*` attributes can also be written using the shorter `dm-*` prefix. Both forms are interchangeable:
+
+| Long form | Shorthand |
+|---|---|
+| `data-morph="false"` | `dm="false"` |
+| `data-morph-preserve` | `dm-preserve` |
+| `data-morph-preserve-children` | `dm-preserve-children` |
+| `data-morph-static` | `dm-static` |
+| `data-morph-target` | `dm-target` |
+| `data-morph-swap` | `dm-swap` |
+| `data-morph-push` | `dm-push` |
+
+```html
+<a href="/stats/" dm-target="#stats-panel" dm-push="true">Refresh</a>
+
+<div id="player" dm-preserve>
+    <audio controls src="/song.mp3"></audio>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js" dm-static></script>
+```
+
+### `data-morph-preserve` / `dm-preserve`
 
 Prevents an element from being morphed, removed, or duplicated during navigation. The element persists exactly as-is. Requires a unique `id`.
 
@@ -142,7 +166,7 @@ Prevents an element from being morphed, removed, or duplicated during navigation
 </div>
 ```
 
-### `data-morph="false"`
+### `data-morph="false"` / `dm="false"`
 
 Opts out of morph behavior for a specific link or form. Forces a full page reload.
 
@@ -155,7 +179,7 @@ Opts out of morph behavior for a specific link or form. Forces a full page reloa
 </form>
 ```
 
-### `data-morph-static`
+### `data-morph-static` / `dm-static`
 
 Prevents a `<script>` from being re-executed after morph. Use this for library scripts (Bootstrap, Alpine.js, Chart.js, etc.) that should only load once.
 
@@ -164,7 +188,7 @@ Prevents a `<script>` from being re-executed after morph. Use this for library s
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer data-morph-static></script>
 ```
 
-### `data-morph-preserve-children`
+### `data-morph-preserve-children` / `dm-preserve-children`
 
 Prevents **all children** inside the element from being morphed, removed, or added. Useful for third-party widgets (Stripe, Google Maps, reCAPTCHA) that create complex internal DOM structures.
 
@@ -176,7 +200,7 @@ Prevents **all children** inside the element from being morphed, removed, or add
 
 Unlike `data-morph-preserve`, this does not require children to have `id` attributes.
 
-### `data-morph-target`
+### `data-morph-target` / `dm-target`
 
 Targets a specific DOM element for morph instead of the entire page. Only the matching element is updated — the rest of the page stays untouched. The page title, head, and scripts outside the target are not affected.
 
@@ -202,7 +226,7 @@ Works with both links and forms:
 </div>
 ```
 
-### `data-morph-swap`
+### `data-morph-swap` / `dm-swap`
 
 Controls how the new content is merged into the target element. Only used with `data-morph-target`.
 
@@ -218,7 +242,7 @@ Controls how the new content is merged into the target element. Only used with `
 <a href="/comments/" data-morph-target="#comment-list" data-morph-swap="beforeend">Load More</a>
 ```
 
-### `data-morph-push`
+### `data-morph-push` / `dm-push`
 
 Controls whether partial morph updates the browser URL. Only used with `data-morph-target`.
 

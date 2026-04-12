@@ -8,7 +8,7 @@
     <a href="{% url 'task_create' %}" class="btn btn-primary"><i class="bi-plus-circle"></i> New Task</a>
 </div>
 
-<form method="get" class="row g-2 mb-3">
+<form method="get" class="row g-2 mb-3" data-morph-target="#task-grid">
     <div class="col-auto">
         <input type="text" name="q" value="{{ search }}" class="form-control" placeholder="Search tasks...">
     </div>
@@ -19,27 +19,28 @@
 
 <ul class="nav nav-tabs mb-3">
     <li class="nav-item">
-        <a class="nav-link {% if not status_filter %}active{% endif %}" href="{% url 'task_list' %}">
+        <a class="nav-link {% if not status_filter %}active{% endif %}" href="{% url 'task_list' %}" data-morph-target="#task-grid">
             All <span class="badge bg-secondary">{{ counts.all }}</span>
         </a>
     </li>
     <li class="nav-item">
-        <a class="nav-link {% if status_filter == 'todo' %}active{% endif %}" href="{% url 'task_list' %}?status=todo">
+        <a class="nav-link {% if status_filter == 'todo' %}active{% endif %}" href="{% url 'task_list' %}?status=todo" data-morph-target="#task-grid">
             To Do <span class="badge bg-secondary">{{ counts.todo }}</span>
         </a>
     </li>
     <li class="nav-item">
-        <a class="nav-link {% if status_filter == 'doing' %}active{% endif %}" href="{% url 'task_list' %}?status=doing">
+        <a class="nav-link {% if status_filter == 'doing' %}active{% endif %}" href="{% url 'task_list' %}?status=doing" data-morph-target="#task-grid" data-morph-push="true">
             Doing <span class="badge bg-warning text-dark">{{ counts.doing }}</span>
         </a>
     </li>
     <li class="nav-item">
-        <a class="nav-link {% if status_filter == 'done' %}active{% endif %}" href="{% url 'task_list' %}?status=done">
+        <a class="nav-link {% if status_filter == 'done' %}active{% endif %}" href="{% url 'task_list' %}?status=done" data-morph-target="#task-grid">
             Done <span class="badge bg-success">{{ counts.done }}</span>
         </a>
     </li>
 </ul>
 
+<div id="task-grid">
 {% if tasks %}
 <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
     {% for task in tasks %}
@@ -79,4 +80,13 @@
     <a href="{% url 'task_create' %}" class="btn btn-primary">Create your first task</a>
 </div>
 {% endif %}
+</div>
+
+<div class="mt-3">
+    <small class="text-muted">
+        <i class="bi-info-circle"></i>
+        Search and filter tabs use <code>data-morph-target="#task-grid"</code> — only the task list updates, not the whole page.
+        The "Doing" tab also has <code>data-morph-push="true"</code>.
+    </small>
+</div>
 {% endblock %}

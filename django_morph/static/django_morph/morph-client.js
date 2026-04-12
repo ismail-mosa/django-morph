@@ -10,6 +10,13 @@
     var TARGET_ATTR = "data-morph-target";
     var SWAP_ATTR = "data-morph-swap";
     var PUSH_ATTR = "data-morph-push";
+    var DM_PRESERVE_ATTR = "dm-preserve";
+    var DM_PRESERVE_CHILDREN_ATTR = "dm-preserve-children";
+    var DM_SKIP_ATTR = "dm";
+    var DM_STATIC_ATTR = "dm-static";
+    var DM_TARGET_ATTR = "dm-target";
+    var DM_SWAP_ATTR = "dm-swap";
+    var DM_PUSH_ATTR = "dm-push";
     var LOADING_CLASS = "morph-loading";
     var UPDATED_EVENT = "django-morph:updated";
     var FETCH_START_EVENT = "django-morph:fetch-start";
@@ -21,6 +28,9 @@
     var PREFETCH_TTL = 30000;
     var RISKY_TAGS = { CANVAS: 1, VIDEO: 1, AUDIO: 1, IFRAME: 1, EMBED: 1, OBJECT: 1 };
     var RISKY_INPUT_TYPES = { file: 1, password: 1 };
+
+    function hasAttr(el, a, b) { return el.hasAttribute(a) || el.hasAttribute(b); }
+    function getAttr(el, a, b) { return el.hasAttribute(a) ? el.getAttribute(a) : el.getAttribute(b); }
 
     var currentController = null;
     var scrollPositions = {};
@@ -71,7 +81,7 @@
 
     function isLocalForm(form) {
         if (form.getAttribute("target") === "_blank") return false;
-        if (form.hasAttribute(SKIP_ATTR) && form.getAttribute(SKIP_ATTR) === "false") return false;
+        if (hasAttr(form, SKIP_ATTR, DM_SKIP_ATTR) && getAttr(form, SKIP_ATTR, DM_SKIP_ATTR) === "false") return false;
         var action = form.getAttribute("action");
         if (!action) return true;
         try {
@@ -83,7 +93,7 @@
     }
 
     function shouldSkipElement(el) {
-        return el.hasAttribute(SKIP_ATTR) && el.getAttribute(SKIP_ATTR) === "false";
+        return hasAttr(el, SKIP_ATTR, DM_SKIP_ATTR) && getAttr(el, SKIP_ATTR, DM_SKIP_ATTR) === "false";
     }
 
     function isRiskyElement(node) {
@@ -100,7 +110,7 @@
 
     function shouldPreserveNode(node) {
         if (node.nodeType !== 1) return false;
-        if (node.hasAttribute(PRESERVE_ATTR)) return true;
+        if (hasAttr(node, PRESERVE_ATTR, DM_PRESERVE_ATTR)) return true;
         if (isRiskyElement(node)) return true;
         return false;
     }
@@ -108,7 +118,7 @@
     function isInsidePreserveChildren(node) {
         var parent = node.parentNode;
         while (parent && parent !== document.documentElement) {
-            if (parent.nodeType === 1 && parent.hasAttribute(PRESERVE_CHILDREN_ATTR)) {
+            if (parent.nodeType === 1 && hasAttr(parent, PRESERVE_CHILDREN_ATTR, DM_PRESERVE_CHILDREN_ATTR)) {
                 return true;
             }
             parent = parent.parentNode;
@@ -212,12 +222,12 @@
     }
 
     function getMorphOptions(el) {
-        var target = el.getAttribute(TARGET_ATTR);
+        var target = getAttr(el, TARGET_ATTR, DM_TARGET_ATTR);
         if (!target) return null;
         return {
             target: target,
-            swap: el.getAttribute(SWAP_ATTR) || "morph",
-            push: el.getAttribute(PUSH_ATTR) === "true"
+            swap: getAttr(el, SWAP_ATTR, DM_SWAP_ATTR) || "morph",
+            push: getAttr(el, PUSH_ATTR, DM_PUSH_ATTR) === "true"
         };
     }
 
@@ -229,7 +239,7 @@
                     if (isInsidePreserveChildren(node)) return false;
                 },
                 beforeNodeAdded: function (node) {
-                    if (node.nodeType === 1 && node.tagName === "SCRIPT" && node.hasAttribute(STATIC_ATTR)) {
+                    if (node.nodeType === 1 && node.tagName === "SCRIPT" && hasAttr(node, STATIC_ATTR, DM_STATIC_ATTR)) {
                         var src = node.getAttribute("src");
                         if (src) {
                             var existing = document.querySelector('script[src="' + src + '"]');
@@ -246,7 +256,7 @@
                 beforeNodeRemoved: function (node) {
                     if (shouldPreserveNode(node)) return false;
                     if (isInsidePreserveChildren(node)) return false;
-                    if (node.nodeType === 1 && node.tagName === "SCRIPT" && node.hasAttribute(STATIC_ATTR)) {
+                    if (node.nodeType === 1 && node.tagName === "SCRIPT" && hasAttr(node, STATIC_ATTR, DM_STATIC_ATTR)) {
                         return false;
                     }
                 }
@@ -354,7 +364,7 @@
 
         scripts.forEach(function (oldScript) {
             if (oldScript.type && oldScript.type !== "text/javascript") return;
-            if (oldScript.hasAttribute(STATIC_ATTR)) {
+            if (hasAttr(oldScript, STATIC_ATTR, DM_STATIC_ATTR)) {
                 var src = oldScript.getAttribute("src");
                 if (src && !executedStaticScripts.has(src)) {
                     executedStaticScripts.add(src);
@@ -568,7 +578,7 @@
         if (!isLocalLink(link)) return;
         if (shouldSkipElement(link)) return;
         if (isHashLink(link)) return;
-        if (link.hasAttribute(TARGET_ATTR)) return;
+        if (hasAttr(link, TARGET_ATTR, DM_TARGET_ATTR)) return;
 
         var url = link.href;
         clearTimeout(prefetchTimer);
@@ -656,7 +666,7 @@
         morphFetch(window.location.href, null, true);
     });
 
-    document.querySelectorAll("script[data-morph-static][src]").forEach(function (s) {
+    document.querySelectorAll("script[data-morph-static][src], script[dm-static][src]").forEach(function (s) {
         executedStaticScripts.add(s.getAttribute("src"));
     });
 

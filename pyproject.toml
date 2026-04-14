@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "django-morph"
-version = "0.1.0"
+version = "0.1.1"
 description = "Zero-config SPA-like navigation for Django using Idiomorph DOM patching. Add middleware + one template tag, your entire site navigates without full reloads."
 readme = "README.md"
 license = {text = "MIT"}
